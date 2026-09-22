@@ -63,11 +63,8 @@
 
   /* ---------- Regras ---------- */
   .regras { max-width: 1180px; margin: 28px auto 0; padding: 0 20px; }
-  .regras details { background: var(--carvao); border: 1px solid var(--linha); border-radius: 14px; }
-  .regras summary { cursor: pointer; padding: 14px 18px; font-family: var(--titulo); font-size: 1.5rem; letter-spacing: .04em; list-style: none; display: flex; justify-content: space-between; align-items: center; }
-  .regras summary::-webkit-details-marker { display: none; }
-  .regras summary::after { content: "+"; font-family: var(--texto-ff); font-weight: 600; color: var(--magenta); font-size: 1.4rem; }
-  .regras details[open] summary::after { content: "–"; }
+  .regras .caixa { background: var(--carvao); border: 1px solid var(--linha); border-radius: 14px; }
+  .regras h2 { padding: 14px 18px 8px; margin: 0; font-size: 1.5rem; letter-spacing: .04em; }
   .regras ul { margin: 0; padding: 0 18px 18px 38px; display: grid; gap: 8px; max-width: 80ch; }
   .regras li::marker { color: var(--rosa); }
   .regras li strong { color: var(--texto); }
@@ -165,8 +162,8 @@
 </div>
 
 <section class="regras" aria-label="Regras do leilão">
-  <details open>
-    <summary>Como funciona</summary>
+  <div class="caixa">
+    <h2>Como funciona</h2>
     <ul>
       <li><strong>Participação:</strong> entre com seu e-mail @fluxo.gg ou @w7m.com.br para dar lances. No primeiro acesso você recebe um código por e-mail; marque "Confiar neste computador" para não precisar dele de novo.</li>
       <li><strong>Lances:</strong> cada lance precisa superar o atual pelo valor mínimo indicado no card.</li>
@@ -176,7 +173,7 @@
       <li><strong>Retirada:</strong> por conta de quem arrematar. Não fazemos entrega das cadeiras.</li>
       <li><strong>Prazo:</strong> se o pagamento não for feito até a próxima data de pagamento, a cadeira volta para o leilão.</li>
     </ul>
-  </details>
+  </div>
 </section>
 
 <p class="aviso" id="aviso" role="alert" hidden></p>
@@ -215,7 +212,7 @@
 
 <script>
   /* ===== Configuração ===== */
-  const API_URL = 'https://script.google.com/macros/s/AKfycbynRwcFIczvZDJxloU6Pd7T9R0uLEcci5AdO_W9Nl7tfOy12jbIiubH8fIMwe51imMV/exec';
+  const API_URL = 'COLE_AQUI_A_URL_DO_APPS_SCRIPT';
   const ATUALIZAR_A_CADA_MS = 15000;
 
   /* ===== Estado ===== */
