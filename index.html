@@ -126,6 +126,9 @@
   .entrada:focus { outline: 0; border-color: var(--magenta); }
   .entrada.codigo { font-size: 1.5rem; letter-spacing: .45em; text-align: center; font-variant-numeric: tabular-nums; }
   .acoes { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.confiar { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; align-items: center; margin: -2px 0 16px; font-weight: 600; cursor: pointer; }
+  .confiar input { width: 18px; height: 18px; accent-color: var(--magenta); margin: 0; }
+  .confiar span { grid-column: 2; font-weight: 400; font-size: .85rem; color: var(--suave); }
   .erro { color: var(--alerta); font-weight: 600; min-height: 1.5em; margin: 10px 0 0 !important; }
 
   .toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); background: var(--texto); color: var(--preto); font-weight: 600; padding: 12px 18px; border-radius: 10px; max-width: calc(100% - 32px); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; }
@@ -162,10 +165,10 @@
 </div>
 
 <section class="regras" aria-label="Regras do leilão">
-  <details>
+  <details open>
     <summary>Como funciona</summary>
     <ul>
-      <li><strong>Participação:</strong> entre com seu e-mail @fluxo.gg ou @w7m.com.br para dar lances.</li>
+      <li><strong>Participação:</strong> entre com seu e-mail @fluxo.gg ou @w7m.com.br para dar lances. No primeiro acesso você recebe um código por e-mail; marque "Confiar neste computador" para não precisar dele de novo.</li>
       <li><strong>Lances:</strong> cada lance precisa superar o atual pelo valor mínimo indicado no card.</li>
       <li id="regra-limite"><strong>Limite por lance:</strong> para evitar erro de digitação, cada lance pode ser de no máximo 3x o valor atual.</li>
       <li id="regra-prorroga" hidden></li>
@@ -187,11 +190,11 @@
 <dialog id="login" aria-labelledby="login-titulo">
   <h2 id="login-titulo">Entrar</h2>
   <form id="passo1">
-    <p>Vamos enviar um código de 6 dígitos para o seu e-mail @fluxo.gg ou @w7m.com.br.</p>
+    <p>Use seu e-mail @fluxo.gg ou @w7m.com.br. Vamos enviar um código de 6 dígitos para confirmar.</p>
     <label class="sr" for="email">E-mail corporativo</label>
     <input class="entrada" id="email" type="email" autocomplete="email" placeholder="voce@fluxo.gg" required>
     <div class="acoes">
-      <button class="btn" type="submit">Enviar código</button>
+      <button class="btn" type="submit">Continuar</button>
       <button class="btn-sec" type="button" data-fechar>Cancelar</button>
     </div>
   </form>
@@ -199,6 +202,7 @@
     <p>Digite o código enviado para <strong id="email-enviado"></strong>.</p>
     <label class="sr" for="codigo">Código</label>
     <input class="entrada codigo" id="codigo" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required>
+    <label class="confiar"><input type="checkbox" id="confiar" checked> Confiar neste computador <span>Não pedir código de novo neste navegador por 90 dias. Desmarque em computadores compartilhados.</span></label>
     <div class="acoes">
       <button class="btn" type="submit">Entrar</button>
       <button class="link" type="button" id="trocar-email">Usar outro e-mail</button>
@@ -226,8 +230,15 @@
   let itens = [];
   let carregando = false;
 
-  function ler(k) { try { return localStorage.getItem(k); } catch { return null; } }
-  function gravar(k, v) { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch {} }
+  function ler(k) {
+    try { return localStorage.getItem(k) || sessionStorage.getItem(k); } catch { return null; }
+  }
+  function gravar(k, v, persistente = true) {
+    try {
+      localStorage.removeItem(k); sessionStorage.removeItem(k);
+      if (v != null) (persistente ? localStorage : sessionStorage).setItem(k, v);
+    } catch {}
+  }
   function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 
   /* ===== API ===== */
@@ -470,19 +481,23 @@
   $('#passo1').addEventListener('submit', async ev => {
     ev.preventDefault();
     const btn = $('button[type=submit]', ev.target);
-    btn.disabled = true; btn.textContent = 'Enviando…';
+    btn.disabled = true; btn.textContent = 'Entrando…';
     $('#erro-login').textContent = '';
     try {
       const email = $('#email').value.trim();
-      await api('pedirCodigo', { email });
-      $('#email-enviado').textContent = email;
-      passo(2);
-      $('#codigo').value = '';
-      $('#codigo').focus();
+      const r = await api('entrar', { email });
+      if (r.precisaCodigo) {
+        $('#email-enviado').textContent = email;
+        passo(2);
+        $('#codigo').value = '';
+        $('#codigo').focus();
+      } else {
+        concluirLogin(r);
+      }
     } catch (e) {
       $('#erro-login').textContent = e.message;
     } finally {
-      btn.disabled = false; btn.textContent = 'Enviar código';
+      btn.disabled = false; btn.textContent = 'Continuar';
     }
   });
 
@@ -492,19 +507,24 @@
     btn.disabled = true; btn.textContent = 'Verificando…';
     $('#erro-login').textContent = '';
     try {
-      const r = await api('validarCodigo', { email: $('#email').value.trim(), codigo: $('#codigo').value });
-      token = r.token; emailLogado = r.email;
-      gravar('leilao_token', token); gravar('leilao_email', emailLogado);
-      dlg.close();
-      atualizarConta();
-      toast('Pronto, você já pode dar lances.');
-      carregar();
+      const r = await api('validarCodigo', { email: $('#email').value.trim(), codigo: $('#codigo').value, confiar: $('#confiar').checked });
+      concluirLogin(r);
     } catch (e) {
       $('#erro-login').textContent = e.message;
     } finally {
       btn.disabled = false; btn.textContent = 'Entrar';
     }
   });
+
+  function concluirLogin(r) {
+    token = r.token; emailLogado = r.email;
+    const lembrar = r.confiar !== false;
+    gravar('leilao_token', token, lembrar); gravar('leilao_email', emailLogado, lembrar);
+    dlg.close();
+    atualizarConta();
+    toast('Pronto, você já pode dar lances.');
+    carregar();
+  }
 
   $('#trocar-email').addEventListener('click', () => { passo(1); $('#email').focus(); });
   dlg.querySelectorAll('[data-fechar]').forEach(b => b.addEventListener('click', () => dlg.close()));
