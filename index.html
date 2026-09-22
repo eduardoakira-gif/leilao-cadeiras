@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leilão de cadeiras</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪑</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --papel: #F3F4F1;
+    --superficie: #FFFFFF;
+    --tinta: #1F2528;
+    --malha: #5B646B;
+    --linha: #D9DDD9;
+    --cobalto: #2743C9;
+    --cobalto-escuro: #1B2F93;
+    --etiqueta: #FFE38A;
+    --ok: #1E7A4C;
+    --alerta: #B3261E;
+    --titulo: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+    --texto: "Figtree", "Segoe UI", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--papel); color: var(--tinta); font-family: var(--texto); font-size: 16px; line-height: 1.5; }
+  button { font: inherit; cursor: pointer; }
+  :focus-visible { outline: 3px solid var(--cobalto); outline-offset: 2px; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  .topo { max-width: 1180px; margin: 0 auto; padding: 32px 20px 4px; display: flex; gap: 20px; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; }
+  h1 { font-family: var(--titulo); font-weight: 800; font-size: clamp(2.4rem, 7vw, 4.4rem); line-height: .92; letter-spacing: -.025em; margin: 0; }
+  .intro { color: var(--malha); max-width: 54ch; margin: 14px 0 0; }
+  .intro + .intro { margin-top: 4px; font-size: .92rem; }
+  .conta { display: flex; align-items: center; gap: 10px; font-size: .95rem; padding-top: 6px; }
+  .conta .email { color: var(--malha); }
+
+  .btn { background: var(--cobalto); color: #fff; border: 0; border-radius: 10px; padding: 10px 16px; font-weight: 600; white-space: nowrap; }
+  .btn:hover { background: var(--cobalto-escuro); }
+  .btn:disabled { opacity: .55; cursor: not-allowed; }
+  .btn-sec { background: transparent; color: var(--tinta); border: 1.5px solid var(--linha); border-radius: 10px; padding: 8px 14px; font-weight: 500; }
+  .btn-sec:hover { border-color: var(--malha); }
+  .link { background: none; border: 0; padding: 0; color: var(--cobalto); text-decoration: underline; }
+
+  .aviso { max-width: 1180px; margin: 16px auto 0; padding: 12px 20px; color: var(--alerta); font-weight: 500; }
+
+  .grade { max-width: 1180px; margin: 0 auto; padding: 28px 20px 72px; display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 32px 24px; }
+  .vazio { color: var(--malha); grid-column: 1 / -1; }
+
+  .lote { position: relative; background: var(--superficie); border: 1px solid var(--linha); border-radius: 4px 4px 18px 18px; display: flex; flex-direction: column; }
+  .foto { aspect-ratio: 4 / 3; background: #E4E7E3; border-radius: 4px 4px 0 0; overflow: hidden; display: grid; place-items: center; }
+  .foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .foto svg { width: 38%; color: #A9B1AC; }
+
+  /* A etiqueta de preço pendurada é o elemento-assinatura da página */
+  .etq-wrap { position: absolute; top: 18px; right: -10px; filter: drop-shadow(0 3px 4px rgba(31, 37, 40, .22)); transform: rotate(3deg); transform-origin: left center; }
+  .etiqueta { position: relative; background: var(--etiqueta); clip-path: polygon(16px 0, 100% 0, 100% 100%, 16px 100%, 0 50%); padding: 8px 18px 10px 30px; min-width: 150px; }
+  .etiqueta::before { content: ""; position: absolute; left: 12px; top: 50%; width: 8px; height: 8px; margin-top: -4px; border-radius: 50%; background: var(--papel); box-shadow: inset 0 1px 2px rgba(0, 0, 0, .35); }
+  .etq-rotulo { display: block; font-size: .78rem; font-weight: 600; color: #6B5A1E; }
+  .etq-valor { display: block; font-family: var(--titulo); font-weight: 800; font-size: 1.75rem; line-height: 1.05; font-variant-numeric: tabular-nums; }
+  .etiqueta.mudou { animation: mudou .55s ease-out; }
+  @keyframes mudou { 0% { transform: scale(1.1); } 100% { transform: scale(1); } }
+  .encerrado .etiqueta { background: #E4E7E3; }
+  .encerrado .etq-rotulo { color: var(--malha); }
+
+  .corpo { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .corpo p { margin: 0; }
+  .lote-num { font-size: .85rem; color: var(--malha); }
+  h2 { font-family: var(--titulo); font-weight: 600; font-size: 1.35rem; line-height: 1.15; margin: 0 0 2px; }
+  .desc { color: var(--malha); font-size: .95rem; }
+  .prazo { font-size: .95rem; margin-top: 6px !important; }
+  .relogio { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .relogio.urgente { color: var(--alerta); }
+  .data { color: var(--malha); }
+  .qtd { font-size: .92rem; color: var(--malha); }
+  .status { font-size: .95rem; font-weight: 600; }
+  .status.ok { color: var(--ok); }
+  .status.alerta { color: var(--alerta); }
+
+  .lance { margin-top: auto; padding-top: 12px; display: flex; gap: 8px; }
+  .campo { flex: 1; min-width: 0; display: flex; align-items: center; border: 1.5px solid var(--linha); border-radius: 10px; padding: 0 4px 0 12px; background: #fff; }
+  .campo:focus-within { border-color: var(--cobalto); }
+  .campo span { color: var(--malha); }
+  .campo input { border: 0; outline: 0; background: transparent; font: inherit; width: 100%; padding: 10px 6px; font-variant-numeric: tabular-nums; }
+  .min { font-size: .84rem; color: var(--malha); }
+
+  dialog { border: 0; border-radius: 16px; padding: 26px; width: calc(100% - 32px); max-width: 400px; color: var(--tinta); }
+  dialog::backdrop { background: rgba(31, 37, 40, .45); }
+  dialog h2 { font-size: 1.6rem; margin-bottom: 6px; }
+  dialog p { margin: 0 0 14px; color: var(--malha); }
+  .entrada { width: 100%; padding: 11px 12px; border: 1.5px solid var(--linha); border-radius: 10px; font: inherit; margin-bottom: 14px; }
+  .entrada:focus { outline: 0; border-color: var(--cobalto); }
+  .entrada.codigo { font-size: 1.5rem; letter-spacing: .45em; text-align: center; font-variant-numeric: tabular-nums; }
+  .acoes { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .erro { color: var(--alerta); font-weight: 500; min-height: 1.5em; margin: 10px 0 0 !important; }
+
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); background: var(--tinta); color: #fff; padding: 12px 18px; border-radius: 10px; max-width: calc(100% - 32px); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; }
+  .toast.visivel { opacity: 1; transform: translate(-50%, 0); }
+  .toast.erro-toast { background: var(--alerta); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .etiqueta.mudou { animation: none; }
+    .toast { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topo">
+  <div>
+    <h1>Leilão de<br>cadeiras</h1>
+    <p class="intro">As cadeiras que estão saindo do escritório vão para quem der o maior lance. Cada uma tem seu próprio prazo.</p>
+    <p class="intro" id="regras"></p>
+  </div>
+  <div class="conta" id="conta"></div>
+</header>
+
+<p class="aviso" id="aviso" role="alert" hidden></p>
+
+<main class="grade" id="grade" aria-live="polite">
+  <p class="vazio">Carregando cadeiras…</p>
+</main>
+
+<dialog id="login" aria-labelledby="login-titulo">
+  <h2 id="login-titulo">Entrar</h2>
+  <form id="passo1">
+    <p>Vamos enviar um código de 6 dígitos para o seu e-mail corporativo.</p>
+    <label class="sr" for="email">E-mail corporativo</label>
+    <input class="entrada" id="email" type="email" autocomplete="email" placeholder="voce@fluxo.gg" required>
+    <div class="acoes">
+      <button class="btn" type="submit">Enviar código</button>
+      <button class="btn-sec" type="button" data-fechar>Cancelar</button>
+    </div>
+  </form>
+  <form id="passo2" hidden>
+    <p>Digite o código enviado para <strong id="email-enviado"></strong>.</p>
+    <label class="sr" for="codigo">Código</label>
+    <input class="entrada codigo" id="codigo" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required>
+    <div class="acoes">
+      <button class="btn" type="submit">Entrar</button>
+      <button class="link" type="button" id="trocar-email">Usar outro e-mail</button>
+    </div>
+  </form>
+  <p class="erro" id="erro-login" role="alert"></p>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+  /* ===== Configuração ===== */
+  const API_URL = 'https://script.google.com/macros/s/AKfycbynRwcFIczvZDJxloU6Pd7T9R0uLEcci5AdO_W9Nl7tfOy12jbIiubH8fIMwe51imMV/exec';
+  const ATUALIZAR_A_CADA_MS = 15000;
+
+  /* ===== Estado ===== */
+  const $ = (s, el = document) => el.querySelector(s);
+  const brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+  const fmtData = new Intl.DateTimeFormat('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+  const CADEIRA_SVG = '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8h22v22H21z"/><path d="M15 34h34"/><path d="M32 34v12"/><path d="M20 54l12-8 12 8"/><circle cx="20" cy="56" r="2"/><circle cx="44" cy="56" r="2"/><circle cx="32" cy="57" r="2"/></svg>';
+
+  let token = ler('leilao_token');
+  let emailLogado = ler('leilao_email');
+  let offset = 0;
+  let itens = [];
+  let carregando = false;
+
+  function ler(k) { try { return localStorage.getItem(k); } catch { return null; } }
+  function gravar(k, v) { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch {} }
+  function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+  /* ===== API ===== */
+  async function api(action, dados = {}) {
+    let r;
+    try {
+      // Sem header Content-Type para evitar preflight de CORS no Apps Script
+      r = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action, ...dados }) });
+    } catch {
+      throw new Error('Sem conexão com o servidor. Verifique sua internet.');
+    }
+    const j = await r.json().catch(() => ({ ok: false, erro: 'Resposta inválida do servidor.' }));
+    if (!j.ok) throw new Error(j.erro || 'Algo deu errado.');
+    return j;
+  }
+
+  async function carregar() {
+    if (carregando) return;
+    carregando = true;
+    try {
+      const r = await api('listar', { token });
+      offset = new Date(r.agora).getTime() - Date.now();
+      if (token && !r.email) sairLocal();
+      itens = r.itens;
+      const min = r.regras && r.regras.antiSnipeMin;
+      $('#regras').textContent = min ? `Um lance nos últimos ${min} minutos prorroga o prazo daquela cadeira em ${min} minutos.` : '';
+      render();
+      $('#aviso').hidden = true;
+    } catch (e) {
+      $('#aviso').textContent = e.message;
+      $('#aviso').hidden = false;
+    } finally {
+      carregando = false;
+    }
+  }
+
+  /* ===== Renderização ===== */
+  function render() {
+    const grade = $('#grade');
+    if (!itens.length) {
+      grade.innerHTML = '<p class="vazio">Nenhuma cadeira no leilão por enquanto.</p>';
+      return;
+    }
+    const vazio = $('.vazio', grade);
+    if (vazio) vazio.remove();
+
+    itens.forEach(it => {
+      let card = grade.querySelector(`[data-id="${CSS.escape(it.id)}"]`);
+      if (!card) { card = criarCard(it); grade.appendChild(card); }
+      atualizarCard(card, it);
+    });
+    grade.querySelectorAll('.lote').forEach(c => {
+      if (!itens.some(it => it.id === c.dataset.id)) c.remove();
+    });
+    tick();
+  }
+
+  function criarCard(it) {
+    const art = document.createElement('article');
+    art.className = 'lote';
+    art.dataset.id = it.id;
+    const idCampo = 'v-' + it.id.replace(/[^\w-]/g, '_');
+    art.innerHTML = `
+      <div class="foto">${it.foto ? `<img src="${esc(it.foto)}" alt="${esc(it.nome)}" loading="lazy">` : CADEIRA_SVG}</div>
+      <div class="etq-wrap"><div class="etiqueta"><span class="etq-rotulo"></span><span class="etq-valor"></span></div></div>
+      <div class="corpo">
+        <p class="lote-num">Lote ${esc(it.id)}</p>
+        <h2>${esc(it.nome)}</h2>
+        ${it.descricao ? `<p class="desc">${esc(it.descricao)}</p>` : ''}
+        <p class="prazo"><span class="relogio"></span> <span class="data"></span></p>
+        <p class="qtd"></p>
+        <p class="status"></p>
+        <form class="lance" novalidate>
+          <label class="sr" for="${idCampo}">Valor do lance para ${esc(it.nome)}</label>
+          <div class="campo"><span>R$</span><input id="${idCampo}" inputmode="decimal" autocomplete="off"></div>
+          <button class="btn" type="submit">Dar lance</button>
+        </form>
+        <p class="min"></p>
+      </div>`;
+    const input = $('input', art);
+    input.addEventListener('input', () => { input.dataset.editado = '1'; });
+    $('form', art).addEventListener('submit', ev => enviarLance(ev, art));
+    const img = $('img', art);
+    if (img) img.addEventListener('error', () => { $('.foto', art).innerHTML = CADEIRA_SVG; });
+    return art;
+  }
+
+  function atualizarCard(card, it) {
+    card.classList.toggle('encerrado', it.encerrado);
+
+    const valEl = $('.etq-valor', card);
+    const novo = brl.format(it.lanceAtual ?? it.lanceInicial);
+    if (valEl.textContent && valEl.textContent !== novo) piscar($('.etiqueta', card));
+    valEl.textContent = novo;
+    $('.etq-rotulo', card).textContent = it.totalLances
+      ? (it.encerrado ? 'Valor final' : 'Lance atual')
+      : 'Lance inicial';
+
+    $('.qtd', card).textContent = it.totalLances === 0 ? 'Nenhum lance ainda'
+      : it.totalLances === 1 ? '1 lance' : `${it.totalLances} lances`;
+
+    let txt = '', cls = '';
+    if (it.encerrado) {
+      if (it.souLider) { txt = 'Você arrematou esta cadeira'; cls = 'ok'; }
+      else if (it.totalLances) txt = it.lider ? `Arrematada por ${it.lider}` : 'Arrematada';
+      else txt = 'Encerrada sem lances';
+    } else if (it.souLider) { txt = 'Você está na frente'; cls = 'ok'; }
+    else if (it.meuMaiorLance) { txt = 'Seu lance foi coberto'; cls = 'alerta'; }
+    else if (it.totalLances && it.lider) txt = `Na frente: ${it.lider}`;
+    const st = $('.status', card);
+    st.textContent = txt;
+    st.className = 'status ' + cls;
+    st.hidden = !txt;
+
+    const rel = $('.relogio', card);
+    if (rel.dataset.fim !== it.encerraEm) { rel.dataset.fim = it.encerraEm; delete rel.dataset.fechou; }
+    const dataFim = fmtData.format(new Date(it.encerraEm));
+    $('.data', card).textContent = it.encerrado ? `em ${dataFim}` : `(até ${dataFim})`;
+
+    const form = $('form', card), input = $('input', card), btn = $('button', card), min = $('.min', card);
+    form.hidden = it.encerrado;
+    min.hidden = it.encerrado;
+    min.textContent = `Lance mínimo: ${brl.format(it.minimo)}`;
+    if (document.activeElement !== input && (!input.dataset.editado || lerValor(input.value) < it.minimo)) {
+      input.value = paraCampo(it.minimo);
+      delete input.dataset.editado;
+    }
+    if (!btn.dataset.confirmar && !btn.disabled) btn.textContent = token ? 'Dar lance' : 'Entrar para dar lance';
+  }
+
+  function piscar(el) {
+    el.classList.remove('mudou');
+    void el.offsetWidth;
+    el.classList.add('mudou');
+  }
+
+  /* ===== Contagem regressiva ===== */
+  function duracao(ms) {
+    const s = Math.floor(ms / 1000);
+    const d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60), seg = s % 60;
+    if (d > 0) return `${d}d ${h}h`;
+    if (h > 0) return `${h}h ${String(m).padStart(2, '0')}min`;
+    return `${m}min ${String(seg).padStart(2, '0')}s`;
+  }
+
+  function tick() {
+    const agora = Date.now() + offset;
+    document.querySelectorAll('.relogio').forEach(el => {
+      if (!el.dataset.fim) return;
+      const ms = new Date(el.dataset.fim).getTime() - agora;
+      if (ms <= 0) {
+        el.textContent = 'Encerrado';
+        el.classList.remove('urgente');
+        if (!el.dataset.fechou) { el.dataset.fechou = '1'; setTimeout(carregar, 1500); }
+        return;
+      }
+      el.textContent = 'Encerra em ' + duracao(ms);
+      el.classList.toggle('urgente', ms < 3600000);
+    });
+  }
+
+  /* ===== Lances ===== */
+  function lerValor(s) {
+    s = String(s || '').trim().replace(/[^\d.,]/g, '');
+    if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.');
+    else if (/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, '');
+    return Number(s);
+  }
+
+  function paraCampo(v) {
+    return Number.isInteger(v) ? String(v) : v.toFixed(2).replace('.', ',');
+  }
+
+  function voltarBotao(btn) {
+    clearTimeout(btn._t);
+    delete btn.dataset.confirmar;
+    btn.disabled = false;
+    btn.textContent = token ? 'Dar lance' : 'Entrar para dar lance';
+  }
+
+  async function enviarLance(ev, card) {
+    ev.preventDefault();
+    if (!token) { abrirLogin(); return; }
+
+    const it = itens.find(x => x.id === card.dataset.id);
+    const input = $('input', card), btn = $('button', card);
+    const valor = lerValor(input.value);
+    if (!(valor > 0)) { toast('Digite o valor do lance.', true); input.focus(); return; }
+    if (valor < it.minimo) { toast(`O lance mínimo é ${brl.format(it.minimo)}.`, true); input.focus(); return; }
+
+    // Primeiro clique pede confirmação, segundo envia
+    if (btn.dataset.confirmar !== String(valor)) {
+      btn.dataset.confirmar = String(valor);
+      btn.textContent = `Confirmar ${brl.format(valor)}`;
+      clearTimeout(btn._t);
+      btn._t = setTimeout(() => voltarBotao(btn), 5000);
+      return;
+    }
+
+    clearTimeout(btn._t);
+    btn.disabled = true;
+    btn.textContent = 'Enviando…';
+    try {
+      await api('darLance', { token, cadeiraId: it.id, valor });
+      toast(`Lance de ${brl.format(valor)} registrado.`);
+      delete input.dataset.editado;
+    } catch (e) {
+      toast(e.message, true);
+      if (/sessão/i.test(e.message)) { sairLocal(); abrirLogin(); }
+    } finally {
+      voltarBotao(btn);
+      await carregar();
+    }
+  }
+
+  /* ===== Login ===== */
+  const dlg = $('#login');
+
+  function passo(n) {
+    $('#passo1').hidden = n !== 1;
+    $('#passo2').hidden = n !== 2;
+    $('#erro-login').textContent = '';
+  }
+
+  function abrirLogin() {
+    passo(1);
+    dlg.showModal();
+    $('#email').focus();
+  }
+
+  $('#passo1').addEventListener('submit', async ev => {
+    ev.preventDefault();
+    const btn = $('button[type=submit]', ev.target);
+    btn.disabled = true; btn.textContent = 'Enviando…';
+    $('#erro-login').textContent = '';
+    try {
+      const email = $('#email').value.trim();
+      await api('pedirCodigo', { email });
+      $('#email-enviado').textContent = email;
+      passo(2);
+      $('#codigo').value = '';
+      $('#codigo').focus();
+    } catch (e) {
+      $('#erro-login').textContent = e.message;
+    } finally {
+      btn.disabled = false; btn.textContent = 'Enviar código';
+    }
+  });
+
+  $('#passo2').addEventListener('submit', async ev => {
+    ev.preventDefault();
+    const btn = $('button[type=submit]', ev.target);
+    btn.disabled = true; btn.textContent = 'Verificando…';
+    $('#erro-login').textContent = '';
+    try {
+      const r = await api('validarCodigo', { email: $('#email').value.trim(), codigo: $('#codigo').value });
+      token = r.token; emailLogado = r.email;
+      gravar('leilao_token', token); gravar('leilao_email', emailLogado);
+      dlg.close();
+      atualizarConta();
+      toast('Pronto, você já pode dar lances.');
+      carregar();
+    } catch (e) {
+      $('#erro-login').textContent = e.message;
+    } finally {
+      btn.disabled = false; btn.textContent = 'Entrar';
+    }
+  });
+
+  $('#trocar-email').addEventListener('click', () => { passo(1); $('#email').focus(); });
+  dlg.querySelectorAll('[data-fechar]').forEach(b => b.addEventListener('click', () => dlg.close()));
+
+  function atualizarConta() {
+    $('#conta').innerHTML = token
+      ? `<span class="email">${esc(emailLogado)}</span><button class="btn-sec" type="button" data-acao="sair">Sair</button>`
+      : `<button class="btn" type="button" data-acao="entrar">Entrar</button>`;
+    document.querySelectorAll('.lance button').forEach(b => { if (!b.dataset.confirmar && !b.disabled) voltarBotao(b); });
+  }
+
+  $('#conta').addEventListener('click', async ev => {
+    const acao = ev.target.dataset.acao;
+    if (acao === 'entrar') abrirLogin();
+    if (acao === 'sair') {
+      const t = token;
+      sairLocal();
+      carregar();
+      try { await api('sair', { token: t }); } catch {}
+    }
+  });
+
+  function sairLocal() {
+    token = null; emailLogado = null;
+    gravar('leilao_token', null); gravar('leilao_email', null);
+    atualizarConta();
+  }
+
+  /* ===== Aviso rápido ===== */
+  function toast(msg, erro = false) {
+    const t = $('#toast');
+    t.textContent = msg;
+    t.classList.toggle('erro-toast', erro);
+    t.classList.add('visivel');
+    clearTimeout(t._t);
+    t._t = setTimeout(() => t.classList.remove('visivel'), 3500);
+  }
+
+  /* ===== Início ===== */
+  atualizarConta();
+  if (API_URL.startsWith('COLE_AQUI')) {
+    $('#grade').innerHTML = '<p class="vazio">Falta configurar: cole a URL do Apps Script na constante API_URL deste arquivo.</p>';
+  } else {
+    carregar();
+    setInterval(tick, 1000);
+    setInterval(() => { if (!document.hidden) carregar(); }, ATUALIZAR_A_CADA_MS);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) carregar(); });
+  }
+</script>
+</body>
+</html>
