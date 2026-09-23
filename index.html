@@ -77,8 +77,8 @@
   .vazio { color: var(--suave); grid-column: 1 / -1; }
 
   .lote { position: relative; background: var(--carvao); border: 1px solid var(--linha); border-radius: 14px; display: flex; flex-direction: column; }
-  .foto { aspect-ratio: 4 / 3; background: var(--carvao-2); border-radius: 13px 13px 0 0; overflow: hidden; display: grid; place-items: center; }
-  .foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .foto { aspect-ratio: 1 / 1; background: var(--carvao-2); border-radius: 13px 13px 0 0; overflow: hidden; display: grid; place-items: center; }
+  .foto img { width: 100%; height: 100%; object-fit: contain; display: block; }
   .foto svg { width: 36%; color: #4A4350; }
 
   /* Etiqueta de preço pendurada, no gradiente do anel da logo */
@@ -167,7 +167,6 @@
     <ul>
       <li><strong>Participação:</strong> entre com seu e-mail @fluxo.gg ou @w7m.com.br para dar lances. No primeiro acesso você recebe um código por e-mail; marque "Confiar neste computador" para não precisar dele de novo.</li>
       <li><strong>Lances:</strong> cada lance precisa superar o atual pelo valor mínimo indicado no card.</li>
-      <li id="regra-limite"><strong>Limite por lance:</strong> para evitar erro de digitação, cada lance pode ser de no máximo 3x o valor atual.</li>
       <li id="regra-prorroga" hidden></li>
       <li><strong>Pagamento:</strong> combinado diretamente com quem arrematar. Você recebe um e-mail quando ganhar.</li>
       <li><strong>Retirada:</strong> por conta de quem arrematar. Não fazemos entrega das cadeiras.</li>
@@ -264,8 +263,6 @@
       const rp = $('#regra-prorroga');
       rp.hidden = !min;
       if (min) rp.innerHTML = `<strong>Último minuto:</strong> um lance nos últimos ${min} minutos prorroga o prazo daquela cadeira em ${min} minutos.`;
-      const mult = r.regras && r.regras.multiploMax;
-      if (mult) $('#regra-limite').innerHTML = `<strong>Limite por lance:</strong> para evitar erro de digitação, cada lance pode ser de no máximo ${mult}x o valor atual.`;
       render();
       $('#aviso').hidden = true;
     } catch (e) {
@@ -433,7 +430,6 @@
     const valor = lerValor(input.value);
     if (!(valor > 0)) { toast('Digite o valor do lance.', true); input.focus(); return; }
     if (valor < it.minimo) { toast(`O lance mínimo é ${brl.format(it.minimo)}.`, true); input.focus(); return; }
-    if (it.maximo && valor > it.maximo) { toast(`Confira o valor: o limite deste lance é ${brl.format(it.maximo)}.`, true); input.focus(); return; }
 
     // Primeiro clique pede confirmação, segundo envia
     if (btn.dataset.confirmar !== String(valor)) {
