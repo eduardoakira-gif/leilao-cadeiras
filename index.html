@@ -73,13 +73,14 @@
   .aviso { max-width: 1180px; margin: 16px auto 0; padding: 0 20px; color: var(--alerta); font-weight: 600; }
 
   /* ---------- Cadeiras ---------- */
-  .grade { max-width: 1180px; margin: 0 auto; padding: 32px 20px 72px; display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 34px 24px; }
+  .grade { max-width: 1180px; margin: 0 auto; padding: 32px 20px 72px; display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 34px 24px; align-items: start; }
   .vazio { color: var(--suave); grid-column: 1 / -1; }
 
   .lote { position: relative; background: var(--carvao); border: 1px solid var(--linha); border-radius: 14px; display: flex; flex-direction: column; }
   .foto { aspect-ratio: 1 / 1; background: var(--carvao-2); border-radius: 13px 13px 0 0; overflow: hidden; display: grid; place-items: center; }
   .foto img, .foto video { width: 100%; height: 100%; object-fit: contain; display: block; background: var(--carvao-2); }
-  .foto video { object-fit: cover; }
+  .foto.tem-video { aspect-ratio: 9 / 16; background: #000; }
+  .foto video { object-fit: contain; background: #000; }
   .foto svg { width: 36%; color: #4A4350; }
 
   /* Etiqueta de preço pendurada, no gradiente do anel da logo */
@@ -337,7 +338,15 @@
     const img = $('img', art);
     if (img) img.addEventListener('error', () => { $('.foto', art).innerHTML = CADEIRA_SVG; });
     const video = $('video', art);
-    if (video) video.addEventListener('error', () => { $('.foto', art).innerHTML = CADEIRA_SVG; }, true);
+    if (video) {
+      const quadro = $('.foto', art);
+      quadro.classList.add('tem-video');
+      // O quadro assume a proporção real do vídeo (em pé, deitado ou quadrado): sem corte e sem faixas
+      video.addEventListener('loadedmetadata', () => {
+        if (video.videoWidth && video.videoHeight) quadro.style.aspectRatio = `${video.videoWidth} / ${video.videoHeight}`;
+      });
+      video.addEventListener('error', () => { quadro.classList.remove('tem-video'); quadro.style.aspectRatio = ''; quadro.innerHTML = CADEIRA_SVG; }, true);
+    }
     return art;
   }
 
