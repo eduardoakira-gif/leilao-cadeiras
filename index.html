@@ -78,7 +78,7 @@
 
   .lote { position: relative; background: var(--carvao); border: 1px solid var(--linha); border-radius: 14px; display: flex; flex-direction: column; }
   .foto { aspect-ratio: 1 / 1; background: var(--carvao-2); border-radius: 13px 13px 0 0; overflow: hidden; display: grid; place-items: center; }
-  .foto img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .foto img, .foto video { width: 100%; height: 100%; object-fit: contain; display: block; background: var(--carvao-2); }
   .foto svg { width: 36%; color: #4A4350; }
 
   /* Etiqueta de preço pendurada, no gradiente do anel da logo */
@@ -90,7 +90,7 @@
   .etiqueta.mudou { animation: mudou .55s ease-out; }
   @keyframes mudou { 0% { transform: scale(1.1); } 100% { transform: scale(1); } }
   .encerrado .etiqueta { background: #3A3440; }
-  .encerrado .foto img { filter: grayscale(.7); }
+  .encerrado .foto img, .encerrado .foto video { filter: grayscale(.7); }
 
   .corpo { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
   .corpo p { margin: 0; }
@@ -298,13 +298,23 @@
     tick();
   }
 
+  // Foto ou vídeo: arquivos .mp4, .webm ou .mov viram vídeo; o resto é imagem
+  function midia(it) {
+    if (!it.foto) return CADEIRA_SVG;
+    const src = esc(it.foto);
+    if (/\.(mp4|webm|mov)(\?.*)?$/i.test(it.foto)) {
+      return `<video src="${src}" muted loop playsinline autoplay controls preload="metadata" aria-label="Vídeo: ${esc(it.nome)}"></video>`;
+    }
+    return `<img src="${src}" alt="${esc(it.nome)}" loading="lazy">`;
+  }
+
   function criarCard(it) {
     const art = document.createElement('article');
     art.className = 'lote';
     art.dataset.id = it.id;
     const idCampo = 'v-' + it.id.replace(/[^\w-]/g, '_');
     art.innerHTML = `
-      <div class="foto">${it.foto ? `<img src="${esc(it.foto)}" alt="${esc(it.nome)}" loading="lazy">` : CADEIRA_SVG}</div>
+      <div class="foto">${midia(it)}</div>
       <div class="etq-wrap"><div class="etiqueta"><span class="etq-rotulo"></span><span class="etq-valor"></span></div></div>
       <div class="corpo">
         <p class="lote-num">Lote ${esc(it.id)}</p>
@@ -325,6 +335,8 @@
     $('form', art).addEventListener('submit', ev => enviarLance(ev, art));
     const img = $('img', art);
     if (img) img.addEventListener('error', () => { $('.foto', art).innerHTML = CADEIRA_SVG; });
+    const video = $('video', art);
+    if (video) video.addEventListener('error', () => { $('.foto', art).innerHTML = CADEIRA_SVG; }, true);
     return art;
   }
 
