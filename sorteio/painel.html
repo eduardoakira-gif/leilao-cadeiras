@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="estilo.css">
+<link rel="stylesheet" href="estilo.css?v=2">
 <style>
   .wrap { max-width: 1100px; margin: 0 auto; padding: 22px 18px 40px; }
   header { display: grid; grid-template-columns: 56px 1fr auto; gap: 14px; align-items: center; margin-bottom: 20px; }
@@ -129,7 +129,7 @@
     <div>
       <h1 class="titulo">Painel do sorteio</h1>
       <div class="suave" style="font-size:.9rem">Brinde · captação de leads</div>
-      <div class="atalhos"><a href="qr.html" target="_blank" rel="noopener">Tela do tablet</a><a href="./" target="_blank" rel="noopener">Cadastro do sorteio</a><a href="x1.html" target="_blank" rel="noopener">Inscrição do X1</a><a href="https://docs.google.com/spreadsheets/d/1KvGDZeTfqWwL1ZLR0p44aOoNBivz78JNQVukXy87KAs/edit" target="_blank" rel="noopener">Planilha</a></div>
+      <div class="atalhos"><a href="qr.html" target="_blank" rel="noopener">Tela do tablet</a><a href="./" target="_blank" rel="noopener">Cadastro do sorteio</a><a href="x1.html" target="_blank" rel="noopener">Inscrição do X1</a><a href="chave.html" target="_blank" rel="noopener">Chave pública</a><a href="https://docs.google.com/spreadsheets/d/1KvGDZeTfqWwL1ZLR0p44aOoNBivz78JNQVukXy87KAs/edit" target="_blank" rel="noopener">Planilha</a></div>
     </div>
     <div class="status"><span class="dot" id="dot"></span><span id="atualizado">carregando…</span></div>
   </header>
@@ -168,7 +168,7 @@
       <div class="x1-topo">
         <div>
           <h2>X1 de Free Fire · 18h</h2>
-          <p class="suave" style="margin:0;font-size:.92rem">Marque quem está <b>presente</b> no check-in. A chave só monta com <b>4 ou 8</b> marcados.</p>
+          <p class="suave" style="margin:0;font-size:.92rem">Marque quem está <b>presente</b> no check-in. A chave só monta com <b>4 ou 8</b> marcados e segue a ordem de inscrição; quem faltar é trocado pelo próximo da lista de espera.</p>
         </div>
         <div class="x1-acao">
           <span class="x1-cont" id="x1-cont">0 marcados</span>
@@ -421,11 +421,10 @@
   });
 
   $('x1-montar').addEventListener('click', () => {
-    const sel = x1Inscritos.filter(marcado).map(i => ({ nick: i.nick, nome: i.nome }));
+    const sel = jogadoresChave();
     if (sel.length !== 4 && sel.length !== 8) return;
     if (chave && !$('x1-montar').dataset.conf) { $('x1-montar').dataset.conf = '1'; $('x1-montar').textContent = 'Já existe uma chave · confirmar nova'; setTimeout(() => { delete $('x1-montar').dataset.conf; statusX1(); }, 6000); return; }
     delete $('x1-montar').dataset.conf;
-    for (let k = sel.length - 1; k > 0; k--) { const j = Math.floor(Math.random() * (k + 1)); [sel[k], sel[j]] = [sel[j], sel[k]]; }
     chave = { jogadores: sel, vence: {}, hist: [] }; guardar('x1_chave', chave);
     abrirChave();
   });
@@ -435,6 +434,15 @@
     if (!chave || !chave.hist.length) return;
     const k = chave.hist.pop(); limparAdiante(k); delete chave.vence[k]; guardar('x1_chave', chave); desenharChave();
   });
+
+  // Mesma ordem da chave pública (1x2, 3x4...). Quem faltar dá lugar ao próximo presente da lista de espera, na mesma posição.
+  function jogadoresChave() {
+    const conf = x1Inscritos.slice(0, 8), espera = x1Inscritos.slice(8).filter(marcado);
+    const slots = conf.map(i => marcado(i) ? i : (espera.shift() || null));
+    let lista = slots.filter(Boolean).concat(espera);
+    if (lista.length !== 8) lista = lista.slice(0, 4);
+    return lista.map(i => ({ nick: i.nick, nome: i.nome }));
+  }
 
   function abrirChave() { $('chave').classList.add('on'); desenharChave(); }
   function totalRodadas() { return Math.log2(chave.jogadores.length); }
