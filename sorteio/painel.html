@@ -53,6 +53,13 @@
   .palco .fone { font-size: 1.3rem; font-weight: 700; margin-top: 8px; font-variant-numeric: tabular-nums; }
   .msg { color: var(--alerta); font-weight: 600; font-size: .9rem; min-height: 1.3em; margin-top: 8px; }
   .aviso { grid-column: span 12; padding: 18px; color: var(--suave); }
+  .contagem { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 14px; padding: 16px 22px; border-image: none; position: relative; overflow: hidden; }
+  .contagem::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--grad); }
+  .contagem span { font-weight: 600; }
+  .contagem b { font-family: var(--titulo); font-weight: 400; font-size: clamp(2.6rem, 7vw, 4.2rem); line-height: 1; letter-spacing: .04em; font-variant-numeric: tabular-nums; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .contagem.hora { background: var(--grad); }
+  .contagem.hora span, .contagem.hora b { color: #fff; background: none; -webkit-text-fill-color: #fff; }
+  .btn.confirmar { background: var(--carvao-2); border: 2px solid var(--magenta); }
   @media (max-width: 820px) {
     .kpi { grid-column: span 6; } .kpi:nth-child(3) { grid-column: span 12; }
     .grafico, .qr, .lista, .sorteio { grid-column: span 12; }
@@ -71,6 +78,11 @@
     </div>
     <div class="status"><span class="dot" id="dot"></span><span id="atualizado">carregando…</span></div>
   </header>
+
+  <div class="card contagem" id="contagem">
+    <div><span class="suave">Sorteio às 19h · inscrições fecham no horário</span></div>
+    <b id="cont-v">--:--:--</b>
+  </div>
 
   <div class="grid">
     <div class="card kpi destaque"><span>Cadastros hoje</span><b id="k-hoje">–</b></div>
@@ -111,7 +123,7 @@
   </div>
 </div>
 
-<script src="config.js?v=2"></script>
+<script src="config.js?v=3"></script>
 <script>
   const API = window.SORTEIO_API;
   const $ = id => document.getElementById(id);
@@ -161,11 +173,39 @@
       : `<li class="vazio">${vazio}</li>`;
   }
 
+  // Contagem regressiva
+  const FIM = new Date(window.SORTEIO_HORA || '2026-11-14T19:00:00-03:00').getTime();
+  function tick() {
+    const s = Math.max(0, Math.floor((FIM - Date.now()) / 1000));
+    const p = n => String(n).padStart(2, '0');
+    if (s > 0) {
+      $('cont-v').textContent = p(Math.floor(s / 3600)) + ':' + p(Math.floor(s / 60) % 60) + ':' + p(s % 60);
+    } else if (!$('contagem').classList.contains('hora')) {
+      $('contagem').classList.add('hora');
+      $('contagem').querySelector('span').textContent = 'Inscrições encerradas';
+      $('cont-v').textContent = 'Hora do sorteio!';
+    }
+  }
+  setInterval(tick, 1000); tick();
+
+  // Trava: antes das 19h ou depois de já ter um ganhador, pede um segundo clique
+  let jaSorteou = false, pedindoConfirmacao = false;
+  function resetBotao() { pedindoConfirmacao = false; $('sortear').classList.remove('confirmar'); $('sortear').textContent = jaSorteou ? 'Sortear outro ganhador' : 'Sortear agora'; }
+
   $('sortear').addEventListener('click', async () => {
     $('msg').textContent = '';
     if (!API) return $('msg').textContent = 'Sistema ainda não configurado.';
     const pin = $('pin').value.trim();
     if (!pin) { $('pin').focus(); return $('msg').textContent = 'Digite o PIN.'; }
+    const antes = Date.now() < FIM;
+    if ((antes || jaSorteou) && !pedindoConfirmacao) {
+      pedindoConfirmacao = true;
+      $('sortear').classList.add('confirmar');
+      $('sortear').textContent = jaSorteou ? 'Confirmar novo ganhador' : 'Ainda não são 19h · confirmar';
+      setTimeout(() => { if (pedindoConfirmacao) resetBotao(); }, 6000);
+      return;
+    }
+    pedindoConfirmacao = false; $('sortear').classList.remove('confirmar');
     $('sortear').disabled = true;
     const palco = $('palco');
     let i = 0;
@@ -181,6 +221,7 @@
       clearInterval(roleta);
       if (!r.ok) { palco.innerHTML = '<div class="suave">O ganhador aparece aqui</div>'; return $('msg').textContent = r.erro || 'Erro ao sortear.'; }
       palco.innerHTML = `<div><div class="suave" style="font-weight:600;margin-bottom:6px">Ganhador do manguito · entre ${r.participantes} participantes</div><div class="nome ganhou">${esc(r.nome)}</div><div class="fone">${esc(r.telefone)}</div></div>`;
+      jaSorteou = true;
       carregar();
     } catch (e) {
       clearInterval(roleta);
@@ -188,6 +229,7 @@
       $('msg').textContent = 'Sem conexão. Tente de novo.';
     } finally {
       $('sortear').disabled = false;
+      resetBotao();
     }
   });
 

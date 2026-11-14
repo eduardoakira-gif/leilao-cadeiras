@@ -29,7 +29,11 @@
   .ok h2 { font-size: 2.6rem; }
   .ok p { color: var(--suave); margin: 8px 0 20px; }
   .rodape { margin-top: 22px; font-size: .78rem; color: var(--suave); max-width: 38ch; }
-  .config { display: none; padding: 18px; color: var(--suave); }
+  .config, .fechado { display: none; padding: 22px 18px; color: var(--suave); width: 100%; }
+  .fechado h2 { font-size: 2.2rem; color: var(--texto); margin-bottom: 6px; }
+  .timer { display: flex; align-items: baseline; justify-content: center; gap: 10px; margin: -6px 0 20px; }
+  .timer span { color: var(--suave); font-weight: 600; font-size: .9rem; text-transform: uppercase; letter-spacing: .12em; }
+  .timer b { font-family: var(--titulo); font-weight: 400; font-size: 2.6rem; line-height: 1; letter-spacing: .04em; font-variant-numeric: tabular-nums; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
 </style>
 </head>
 <body>
@@ -37,7 +41,8 @@
   <img class="logo" src="logo.png" alt="Fluxo W7M" width="92" height="92">
   <span class="selo">Sorteio do dia</span>
   <h1 class="titulo">Ganhe um <span class="grad-txt">manguito</span></h1>
-  <p class="lead">Deixe seu nome e telefone e concorra. <strong>O sorteio acontece no final do dia.</strong></p>
+  <p class="lead">Deixe seu nome e telefone e concorra. <strong>O sorteio é hoje às 19h.</strong></p>
+  <div class="timer" id="timer" aria-live="off"><span>Faltam</span><b id="timer-v">--:--:--</b></div>
 
   <form id="form" class="card" novalidate>
     <label class="campo" for="nome">Nome completo</label>
@@ -58,22 +63,51 @@
   <div class="ok card" id="ok" aria-live="polite">
     <div class="icone"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
     <h2 class="titulo" id="ok-titulo">Você está no sorteio!</h2>
-    <p id="ok-texto">Fique de olho no telefone: o ganhador será chamado no final do dia.</p>
+    <p id="ok-texto">Fique de olho no telefone: o ganhador será chamado às 19h.</p>
     <button class="btn-sec" id="outro" type="button">Cadastrar outra pessoa</button>
   </div>
 
   <div class="config card" id="config">Sorteio em configuração. Volte em alguns minutos.</div>
+  <div class="fechado card" id="fechado"><h2 class="titulo">Inscrições encerradas</h2>O sorteio do manguito está acontecendo agora. Obrigado por participar!</div>
 
   <p class="rodape">Um cadastro por telefone. Ganhador sorteado aleatoriamente entre todos os participantes e contatado pelo número informado.</p>
 </main>
 
-<script src="config.js?v=2"></script>
+<script src="config.js?v=3"></script>
 <script>
   const API = window.SORTEIO_API;
   const $ = id => document.getElementById(id);
   const origem = new URLSearchParams(location.search).get('origem') || 'link';
 
   if (!API) { $('form').style.display = 'none'; $('config').style.display = 'block'; }
+
+  // Contagem regressiva e encerramento às 19h
+  const FIM = new Date(window.SORTEIO_HORA || '2026-11-14T19:00:00-03:00').getTime();
+  function tick() {
+    const s = Math.max(0, Math.floor((FIM - Date.now()) / 1000));
+    const p = n => String(n).padStart(2, '0');
+    $('timer-v').textContent = p(Math.floor(s / 3600)) + ':' + p(Math.floor(s / 60) % 60) + ':' + p(s % 60);
+    if (s === 0) {
+      $('timer').style.display = 'none';
+      $('form').style.display = 'none'; $('ok').style.display = 'none';
+      $('fechado').style.display = 'block';
+      clearInterval(relogio);
+    }
+  }
+  const relogio = setInterval(tick, 1000); tick();
+
+  // Envia e tenta de novo uma vez se a rede ou o Google falhar (o cadastro não duplica)
+  async function enviar(dados) {
+    for (let t = 0; t < 2; t++) {
+      try {
+        const r = await fetch(API, { method: 'POST', body: JSON.stringify(dados) });
+        return await r.json();
+      } catch (e) {
+        if (t === 1) throw e;
+        await new Promise(ok => setTimeout(ok, 1500));
+      }
+    }
+  }
 
   // Máscara de telefone
   $('telefone').addEventListener('input', e => {
@@ -95,13 +129,12 @@
 
     $('enviar').disabled = true; $('enviar').textContent = 'Enviando...';
     try {
-      const r = await fetch(API, { method: 'POST', body: JSON.stringify({ acao: 'cadastro', nome, telefone: fone, aceite: true, origem }) });
-      const j = await r.json();
+      const j = await enviar({ acao: 'cadastro', nome, telefone: fone, aceite: true, origem });
       if (!j.ok) return falha(j.erro || 'Não foi possível cadastrar.');
       $('ok-titulo').textContent = j.duplicado ? 'Você já está no sorteio!' : 'Você está no sorteio!';
       $('ok-texto').textContent = j.duplicado
-        ? 'Esse telefone já foi cadastrado. Boa sorte no sorteio do final do dia!'
-        : 'Fique de olho no telefone: o ganhador será chamado no final do dia.';
+        ? 'Esse telefone já foi cadastrado. Boa sorte no sorteio das 19h!'
+        : 'Fique de olho no telefone: o ganhador será chamado às 19h.';
       $('form').style.display = 'none'; $('ok').style.display = 'block';
     } catch (err) {
       falha('Sem conexão. Tente de novo.');
