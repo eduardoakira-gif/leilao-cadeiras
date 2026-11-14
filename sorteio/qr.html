@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#000000">
 <meta name="robots" content="noindex">
-<title>Escaneie e concorra | Fluxo W7M</title>
+<title>Escaneie e participe | Fluxo W7M</title>
 <link rel="icon" href="logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,77 +13,108 @@
 <link rel="stylesheet" href="estilo.css">
 <style>
   html, body { height: 100%; overflow: hidden; }
-  main { height: 100vh; height: 100dvh; display: grid; place-items: center; padding: 3vmin; }
-  .tela { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2.2vmin; }
-  .logo { width: 13vmin; height: 13vmin; }
-  h1 { font-size: 9vmin; }
-  .sub { color: var(--suave); font-size: 3vmin; font-weight: 600; margin: -1vmin 0 0; }
-  .texto { display: flex; flex-direction: column; align-items: center; gap: 2.2vmin; }
-  .qr { width: 66vmin; height: 66vmin; background: #fff; border-radius: 3vmin; padding: 2.4vmin; position: relative; }
-  .anel { padding: 1vmin; border-radius: 3.8vmin; background: var(--grad); box-shadow: 0 0 8vmin rgba(176,5,255,.35); }
+  main { height: 100vh; height: 100dvh; display: grid; grid-template-rows: auto 1fr; gap: 2.4vmin; padding: 3vmin 3vmin 3.4vmin; }
+  .topo { display: flex; align-items: center; justify-content: center; gap: 2.4vmin; }
+  .topo img { width: 9vmin; height: 9vmin; }
+  .topo h1 { font-size: 6.4vmin; }
+  .topo p { margin: 0; color: var(--suave); font-weight: 600; font-size: 2.4vmin; }
+  .duas { display: grid; grid-template-columns: 1fr 1fr; gap: 3vmin; min-height: 0; }
+  .bloco { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.8vmin;
+    background: rgba(21,18,23,.92); border: 1px solid var(--linha); border-radius: 3vmin; padding: 3vmin 2.4vmin; text-align: center; overflow: hidden; }
+  .bloco::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: .9vmin; background: var(--grad); }
+  .etq { font-weight: 700; font-size: 2.2vmin; letter-spacing: .16em; text-transform: uppercase; padding: .8vmin 2vmin; border-radius: 999px; border: 1px solid var(--linha); background: var(--preto); }
+  .bloco h2 { font-family: var(--titulo); font-weight: 400; font-size: 8.4vmin; line-height: .9; letter-spacing: .03em; margin: 0; }
+  .qr { background: #fff; border-radius: 2.4vmin; padding: 1.6vmin; width: min(46vmin, 34vw); aspect-ratio: 1; box-shadow: 0 0 0 .8vmin rgba(224,63,200,.55), 0 0 6vmin rgba(176,5,255,.3); }
   .qr img { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
-  .timer { display: flex; align-items: baseline; gap: 2vmin; }
-  .timer span { white-space: nowrap; color: var(--suave); font-weight: 600; font-size: 2.6vmin; text-transform: uppercase; letter-spacing: .14em; }
-  .timer b { font-family: var(--titulo); font-weight: 400; font-size: 7vmin; line-height: 1; letter-spacing: .04em; font-variant-numeric: tabular-nums; }
-  .fechado { display: none; }
-  .social { display: none; align-items: center; gap: 1.2vmin; font-size: 3vmin; font-weight: 600; color: var(--texto); padding: 1.2vmin 2.4vmin; border: 1px solid var(--linha); border-radius: 999px; background: var(--carvao-2); }
-  .social::before { content: ""; width: 1.6vmin; height: 1.6vmin; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 .8vmin rgba(91,227,164,.18); }
-  .social b { font-family: var(--titulo); font-weight: 400; font-size: 4.2vmin; line-height: 1; }
-  .fechado h1 { font-size: 11vmin; }
-  .fechado p { color: var(--suave); font-size: 3.4vmin; margin: 0; }
-  /* Tablet deitado: QR ao lado do texto */
-  @media (orientation: landscape) {
-    .tela { flex-direction: row; gap: 6vmin; text-align: left; }
-    .texto { display: flex; flex-direction: column; align-items: flex-start; gap: 2.4vmin; max-width: 46vw; }
-    .qr { width: 72vmin; height: 72vmin; }
-    h1 { font-size: 11vmin; }
-    .fechado { text-align: center; }
-    .timer { flex-direction: column; align-items: flex-start; gap: .6vmin; }
-    .timer b { font-size: 9vmin; }
-    .sub { white-space: nowrap; }
+  .info { display: flex; align-items: baseline; justify-content: center; gap: 1.6vmin; flex-wrap: wrap; }
+  .info span { color: var(--suave); font-weight: 600; font-size: 2.3vmin; text-transform: uppercase; letter-spacing: .12em; }
+  .info b { font-family: var(--titulo); font-weight: 400; font-size: 6vmin; line-height: 1; letter-spacing: .04em; font-variant-numeric: tabular-nums; }
+  .chip { display: none; align-items: center; gap: 1vmin; font-size: 2.4vmin; font-weight: 600; padding: .9vmin 2vmin; border: 1px solid var(--linha); border-radius: 999px; background: var(--carvao-2); }
+  .chip::before { content: ""; width: 1.4vmin; height: 1.4vmin; border-radius: 50%; background: var(--ok); }
+  .chip.cheio::before { background: var(--alerta); }
+  .chip b { font-family: var(--titulo); font-weight: 400; font-size: 3.4vmin; line-height: 1; }
+  .fechado { display: none; flex-direction: column; align-items: center; justify-content: center; gap: 1.4vmin; flex: 1; }
+  .fechado strong { font-family: var(--titulo); font-weight: 400; font-size: 7vmin; line-height: .95; }
+  .fechado p { margin: 0; color: var(--suave); font-size: 2.6vmin; max-width: 30ch; }
+  .bloco.encerrado .aberto { display: none; }
+  .bloco.encerrado .fechado { display: flex; }
+  /* Tablet em pé: um em cima do outro */
+  @media (orientation: portrait) {
+    .duas { grid-template-columns: 1fr; }
+    .bloco { flex-direction: row; text-align: left; gap: 3vmin; }
+    .bloco .txt { display: flex; flex-direction: column; align-items: flex-start; gap: 1.6vmin; flex: 1; }
+    .info { justify-content: flex-start; }
+    .qr { width: 38vmin; flex: none; }
+    .bloco h2 { font-size: 7.4vmin; }
   }
+  @media (orientation: landscape) { .bloco .txt { display: contents; } }
 </style>
 </head>
 <body>
 <main>
-  <div class="tela" id="aberto">
-    <div class="texto">
-      <img class="logo" src="logo.png" alt="Fluxo W7M">
-      <h1 class="titulo">Escaneie e concorra a um <span class="grad-txt">brinde</span></h1>
-      <p class="sub">Aponte a câmera do celular · leva 20 segundos</p>
-      <div class="timer"><span>Sorteio às 19h · faltam</span><b class="grad-txt" id="t">--:--:--</b></div>
-      <div class="social" id="social"><b id="qtd">0</b> pessoas já estão concorrendo</div>
-    </div>
-    <div class="anel"><div class="qr"><img src="qr-tablet.png" alt="QR code para se cadastrar no sorteio"></div></div>
-  </div>
-  <div class="tela fechado" id="fechado">
+  <div class="topo">
+    <img src="logo.png" alt="Fluxo W7M">
     <div>
-      <img class="logo" src="logo.png" alt="Fluxo W7M" style="margin:0 auto 2vmin;display:block">
-      <h1 class="titulo">Inscrições <span class="grad-txt">encerradas</span></h1>
-      <p>O sorteio do brinde está acontecendo agora. Boa sorte!</p>
+      <h1 class="titulo">Escaneie e <span class="grad-txt">participe</span></h1>
+      <p>Aponte a câmera do celular para o QR da atividade que você quer</p>
     </div>
+  </div>
+
+  <div class="duas">
+    <section class="bloco" id="b-x1">
+      <div class="txt aberto">
+        <span class="etq">Hoje às 18h</span>
+        <h2>X1 de <span class="grad-txt">Free Fire</span></h2>
+        <div class="info"><span>Inscrições fecham em</span><b class="grad-txt" id="t-x1">--:--:--</b></div>
+        <div class="chip" id="c-x1"><b id="n-x1">0</b> <span id="l-x1">de 8 vagas preenchidas</span></div>
+      </div>
+      <div class="qr aberto"><img src="qr-x1.png" alt="QR code da inscrição no X1 de Free Fire"></div>
+      <div class="fechado"><strong>X1 <span class="grad-txt">começando</span></strong><p>Inscrições encerradas. Confirmados, procurem a promoter.</p></div>
+    </section>
+
+    <section class="bloco" id="b-sorteio">
+      <div class="txt aberto">
+        <span class="etq">Hoje às 19h</span>
+        <h2>Sorteio de <span class="grad-txt">brinde</span></h2>
+        <div class="info"><span>Sorteio em</span><b class="grad-txt" id="t-sorteio">--:--:--</b></div>
+        <div class="chip" id="c-sorteio"><b id="n-sorteio">0</b> <span>pessoas concorrendo</span></div>
+      </div>
+      <div class="qr aberto"><img src="qr-tablet.png" alt="QR code do cadastro no sorteio de brinde"></div>
+      <div class="fechado"><strong>Sorteio <span class="grad-txt">agora</span></strong><p>Inscrições encerradas. Boa sorte a todos!</p></div>
+    </section>
   </div>
 </main>
-<script src="config.js?v=3"></script>
+<script src="config.js?v=4"></script>
 <script>
-  const FIM = new Date(window.SORTEIO_HORA || '2026-11-14T19:00:00-03:00').getTime();
+  const $ = id => document.getElementById(id);
   const p = n => String(n).padStart(2, '0');
+  const fim = { x1: new Date(window.X1_HORA || '2026-11-14T18:00:00-03:00').getTime(), sorteio: new Date(window.SORTEIO_HORA || '2026-11-14T19:00:00-03:00').getTime() };
   function tick() {
-    const s = Math.max(0, Math.floor((FIM - Date.now()) / 1000));
-    document.getElementById('t').textContent = p(Math.floor(s / 3600)) + ':' + p(Math.floor(s / 60) % 60) + ':' + p(s % 60);
-    if (s === 0) { document.getElementById('aberto').style.display = 'none'; document.getElementById('fechado').style.display = 'flex'; }
+    for (const k in fim) {
+      const s = Math.max(0, Math.floor((fim[k] - Date.now()) / 1000));
+      $('t-' + k).textContent = p(Math.floor(s / 3600)) + ':' + p(Math.floor(s / 60) % 60) + ':' + p(s % 60);
+      $('b-' + k).classList.toggle('encerrado', s === 0);
+    }
   }
   setInterval(tick, 1000); tick();
-  // Contador ao vivo (aparece a partir de 5 participantes)
+
   async function contar() {
     if (!window.SORTEIO_API) return;
     try {
       const d = await (await fetch(window.SORTEIO_API + '?acao=stats&t=' + Date.now())).json();
-      if (d.ok && d.total >= 5) { document.getElementById('qtd').textContent = d.total; document.getElementById('social').style.display = 'inline-flex'; }
+      if (!d.ok) return;
+      if (d.total >= 5) { $('n-sorteio').textContent = d.total; $('c-sorteio').style.display = 'inline-flex'; }
+      if (d.x1) {
+        const cheio = d.x1.total >= d.x1.vagas;
+        $('n-x1').textContent = cheio ? 'Esgotado' : Math.min(d.x1.total, d.x1.vagas);
+        $('l-x1').textContent = cheio ? '· inscreva-se na lista de espera' : 'de ' + d.x1.vagas + ' vagas preenchidas';
+        $('c-x1').classList.toggle('cheio', cheio);
+        $('c-x1').style.display = 'inline-flex';
+      }
     } catch (e) {}
   }
   contar(); setInterval(contar, 30000);
-  // Mantém a tela do tablet acesa quando o navegador permite
+
   async function acordado() { try { await navigator.wakeLock.request('screen'); } catch (e) {} }
   acordado(); document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') acordado(); });
 </script>

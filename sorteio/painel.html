@@ -67,6 +67,45 @@
   .palco .nome.ganhou { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .palco .fone { font-size: 1.3rem; font-weight: 700; margin-top: 8px; font-variant-numeric: tabular-nums; }
   .msg { color: var(--alerta); font-weight: 600; font-size: .9rem; min-height: 1.3em; margin-top: 8px; }
+  .x1 { grid-column: span 12; }
+  .x1-topo { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+  .x1-acao { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .x1-acao .btn { width: auto; padding: 12px 20px; }
+  .x1-cont { font-weight: 700; font-variant-numeric: tabular-nums; padding: 8px 12px; border-radius: 999px; border: 1px solid var(--linha); }
+  .x1-cont.ok { border-color: var(--ok); color: var(--ok); }
+  .x1-dica { margin: 12px 0 6px; font-weight: 600; font-size: .92rem; color: var(--suave); min-height: 1.2em; }
+  .x1-dica.alerta { color: var(--alerta); }
+  .x1-lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 8px; }
+  .x1-lista li { display: grid; grid-template-columns: 26px 1fr auto; gap: 10px; border: 1px solid var(--linha); border-radius: 12px; padding: 10px 12px; cursor: pointer; border-top: 1px solid var(--linha); }
+  .x1-lista li.vazio { display: block; cursor: default; border: 0; padding: 4px 0; }
+  .x1-lista li.marcado { border-color: var(--magenta); background: rgba(224,63,200,.08); }
+  .x1-lista input { width: 20px; height: 20px; accent-color: var(--magenta); margin: 0; align-self: center; }
+  .x1-lista .nick { font-weight: 700; display: block; line-height: 1.2; }
+  .x1-lista .quem { color: var(--suave); font-size: .82rem; }
+  .tag { font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; align-self: center; white-space: nowrap; }
+  .tag.conf { background: rgba(91,227,164,.14); color: var(--ok); }
+  .tag.esp { background: rgba(171,163,179,.14); color: var(--suave); }
+  .chave { position: fixed; inset: 0; z-index: 40; background: var(--preto); display: none; flex-direction: column; padding: 22px; overflow: auto; }
+  .chave.on { display: flex; }
+  .chave-topo { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+  .chave-topo h2 { font-size: 2.4rem; margin: 0; }
+  .chave-topo .acoes { display: flex; gap: 8px; }
+  .rodadas { flex: 1; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(200px, 1fr); gap: 22px; align-items: stretch; }
+  .rodada { display: flex; flex-direction: column; }
+  .rodada h3 { font-family: var(--titulo); font-weight: 400; font-size: 1.5rem; letter-spacing: .04em; margin: 0 0 10px; color: var(--suave); text-align: center; }
+  .jogos { flex: 1; display: flex; flex-direction: column; justify-content: space-around; gap: 14px; }
+  .jogo { border: 1px solid var(--linha); border-radius: 12px; overflow: hidden; background: var(--carvao); }
+  .jog { display: block; width: 100%; text-align: left; background: none; border: 0; color: var(--texto); padding: 12px 14px; font-size: 1.05rem; font-weight: 600; cursor: pointer; min-height: 48px; }
+  .jog + .jog { border-top: 1px solid var(--linha); }
+  .jog small { display: block; color: var(--suave); font-weight: 500; font-size: .78rem; }
+  .jog:hover:not(:disabled) { background: var(--carvao-2); }
+  .jog:disabled { cursor: default; color: var(--suave); }
+  .jog.venceu, .jog.venceu:hover:not(:disabled) { background: var(--grad); color: #fff; }
+  .jog.venceu small { color: rgba(255,255,255,.85); }
+  .jog.perdeu { opacity: .4; text-decoration: line-through; }
+  .campeao { display: grid; place-items: center; text-align: center; border: 2px dashed var(--linha); border-radius: 16px; padding: 18px; min-height: 160px; }
+  .campeao.tem { border: 0; background: radial-gradient(80% 80% at 50% 40%, rgba(176,5,255,.35), transparent 70%); }
+  .campeao .nome { font-family: var(--titulo); font-size: clamp(2.4rem, 5vw, 4rem); line-height: .95; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .aviso { grid-column: span 12; padding: 18px; color: var(--suave); }
   .contagem { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 14px; padding: 16px 22px; border-image: none; position: relative; overflow: hidden; }
   .contagem::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--grad); }
@@ -90,7 +129,7 @@
     <div>
       <h1 class="titulo">Painel do sorteio</h1>
       <div class="suave" style="font-size:.9rem">Brinde · captação de leads</div>
-      <div class="atalhos"><a href="qr.html" target="_blank" rel="noopener">Tela do tablet</a><a href="./" target="_blank" rel="noopener">Página de cadastro</a><a href="https://docs.google.com/spreadsheets/d/1KvGDZeTfqWwL1ZLR0p44aOoNBivz78JNQVukXy87KAs/edit" target="_blank" rel="noopener">Planilha</a></div>
+      <div class="atalhos"><a href="qr.html" target="_blank" rel="noopener">Tela do tablet</a><a href="./" target="_blank" rel="noopener">Cadastro do sorteio</a><a href="x1.html" target="_blank" rel="noopener">Inscrição do X1</a><a href="https://docs.google.com/spreadsheets/d/1KvGDZeTfqWwL1ZLR0p44aOoNBivz78JNQVukXy87KAs/edit" target="_blank" rel="noopener">Planilha</a></div>
     </div>
     <div class="status"><span class="dot" id="dot"></span><span id="atualizado">carregando…</span></div>
   </header>
@@ -102,7 +141,7 @@
 
   <div class="grid">
     <div class="card kpi destaque"><span>Cadastros hoje</span><b id="k-hoje">–</b></div>
-    <div class="card kpi"><span>Total de leads</span><b id="k-total">–</b></div>
+    <div class="card kpi"><span>Total de leads</span><b id="k-total">–</b><small id="k-origem"></small></div>
     <div class="card kpi" id="kpi-ultimo"><span>Último cadastro</span><b id="k-ultimo">–</b><small id="k-ultimo-sub"></small></div>
     <div class="card kpi"><span>Pico do dia</span><b id="k-pico">–</b></div>
 
@@ -123,6 +162,22 @@
     <div class="card lista">
       <h2>Ganhadores</h2>
       <ul id="ganhadores"><li class="vazio">Ainda não houve sorteio.</li></ul>
+    </div>
+
+    <div class="card x1" id="x1">
+      <div class="x1-topo">
+        <div>
+          <h2>X1 de Free Fire · 18h</h2>
+          <p class="suave" style="margin:0;font-size:.92rem">Marque quem está <b>presente</b> no check-in. A chave só monta com <b>4 ou 8</b> marcados.</p>
+        </div>
+        <div class="x1-acao">
+          <span class="x1-cont" id="x1-cont">0 marcados</span>
+          <button class="btn" id="x1-montar" disabled>Montar chave</button>
+          <button class="btn-sec" id="x1-abrir" style="display:none">Abrir chave atual</button>
+        </div>
+      </div>
+      <div class="x1-dica" id="x1-dica"></div>
+      <ul class="x1-lista" id="x1-lista"><li class="vazio">Nenhum inscrito ainda.</li></ul>
     </div>
 
     <div class="card sorteio">
@@ -149,9 +204,16 @@
     <button class="btn-sec" id="rev-fechar" type="button">Fechar</button>
   </div>
 </div>
+<div class="chave" id="chave" role="dialog" aria-label="Chaveamento do X1">
+  <div class="chave-topo">
+    <h2 class="titulo">Chave do <span class="grad-txt">X1</span> · toque no vencedor de cada jogo</h2>
+    <div class="acoes"><button class="btn-sec" id="chave-desfazer">Desfazer último</button><button class="btn-sec" id="chave-fechar">Voltar ao painel</button></div>
+  </div>
+  <div class="rodadas" id="rodadas"></div>
+</div>
 <canvas id="confete"></canvas>
 
-<script src="config.js?v=3"></script>
+<script src="config.js?v=4"></script>
 <script>
   const API = window.SORTEIO_API;
   const $ = id => document.getElementById(id);
@@ -169,10 +231,13 @@
       nomes = d.nomes || [];
       $('k-hoje').textContent = d.totalHoje;
       $('k-total').textContent = d.total;
+      const nomesOrigem = { tablet: 'tablet', qr: 'QR', indicacao: 'indicação', link: 'link' };
+      $('k-origem').textContent = d.porOrigem ? Object.entries(d.porOrigem).sort((a, b) => b[1] - a[1]).map(([o, n]) => (nomesOrigem[o] || o) + ' ' + n).join(' · ') : '';
       const horas = Object.keys(d.porHora);
       const pico = horas.sort((a, b) => d.porHora[b] - d.porHora[a])[0];
       $('k-pico').textContent = pico ? pico + 'h' : '–';
       ultimoHora = d.ultimos && d.ultimos[0] ? d.ultimos[0].hora : '';
+      renderX1(d.x1);
       ultimoCadastro();
       barras(d.porHora);
       lista('ultimos', d.ultimos, 'Nenhum cadastro ainda.');
@@ -308,6 +373,117 @@
       if (t - t0 < 5000) requestAnimationFrame(quadro); else ctx.clearRect(0, 0, cv.width, cv.height);
     })(t0);
   }
+
+  /* ===== X1 de Free Fire ===== */
+  const guardar = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+  const ler = (k, padrao) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : padrao; } catch (e) { return padrao; } };
+  let x1Inscritos = [];
+  let marcacao = ler('x1_marcacao', {});   // posicao -> true/false (só o que a promoter mexeu)
+  let chave = ler('x1_chave', null);       // { jogadores: [...], vence: { 'r-m': indiceDoJogador }, hist: [...] }
+
+  function marcado(i) { return marcacao[i.posicao] !== undefined ? marcacao[i.posicao] : i.posicao <= 8; }
+
+  function renderX1(x1) {
+    if (!x1) { $('x1-dica').textContent = 'Atualize o Apps Script para ativar o X1.'; $('x1-dica').className = 'x1-dica alerta'; return; }
+    x1Inscritos = x1.inscritos || [];
+    $('x1-lista').innerHTML = x1Inscritos.length ? x1Inscritos.map(i => `
+      <li class="${marcado(i) ? 'marcado' : ''}" data-p="${i.posicao}">
+        <input type="checkbox" ${marcado(i) ? 'checked' : ''} aria-label="Presente: ${esc(i.nick)}">
+        <span><span class="nick">${esc(i.nick)}</span><span class="quem">${esc(i.nome)} · ${esc(i.telefone)}</span></span>
+        <span class="tag ${i.posicao <= x1.vagas ? 'conf' : 'esp'}">${i.posicao <= x1.vagas ? 'Vaga ' + i.posicao : 'Espera ' + (i.posicao - x1.vagas)}</span>
+      </li>`).join('') : '<li class="vazio">Nenhum inscrito ainda.</li>';
+    statusX1();
+  }
+
+  function statusX1() {
+    const n = x1Inscritos.filter(marcado).length;
+    const valido = n === 4 || n === 8;
+    $('x1-cont').textContent = n + (n === 1 ? ' marcado' : ' marcados');
+    $('x1-cont').classList.toggle('ok', valido);
+    $('x1-montar').disabled = !valido;
+    $('x1-montar').textContent = valido ? 'Montar chave com ' + n : 'Montar chave';
+    let dica = '', alerta = false;
+    if (!x1Inscritos.length) dica = '';
+    else if (n < 4) { dica = 'Faltam ' + (4 - n) + ' para fechar uma chave de 4.'; alerta = true; }
+    else if (n > 4 && n < 8) { dica = 'Com ' + n + ' não fecha. Desmarque ' + (n - 4) + ' para jogar com 4, ou marque mais ' + (8 - n) + ' para jogar com 8.'; alerta = true; }
+    else if (n > 8) { dica = 'Máximo de 8. Desmarque ' + (n - 8) + '.'; alerta = true; }
+    else dica = 'Pronto: chave de ' + n + ' jogadores.';
+    $('x1-dica').textContent = dica; $('x1-dica').className = 'x1-dica' + (alerta ? ' alerta' : '');
+    $('x1-abrir').style.display = chave ? 'inline-block' : 'none';
+  }
+
+  $('x1-lista').addEventListener('click', e => {
+    const li = e.target.closest('li[data-p]'); if (!li) return;
+    const i = x1Inscritos.find(x => x.posicao === Number(li.dataset.p));
+    marcacao[i.posicao] = !marcado(i); guardar('x1_marcacao', marcacao);
+    li.classList.toggle('marcado', marcado(i)); li.querySelector('input').checked = marcado(i);
+    statusX1();
+  });
+
+  $('x1-montar').addEventListener('click', () => {
+    const sel = x1Inscritos.filter(marcado).map(i => ({ nick: i.nick, nome: i.nome }));
+    if (sel.length !== 4 && sel.length !== 8) return;
+    if (chave && !$('x1-montar').dataset.conf) { $('x1-montar').dataset.conf = '1'; $('x1-montar').textContent = 'Já existe uma chave · confirmar nova'; setTimeout(() => { delete $('x1-montar').dataset.conf; statusX1(); }, 6000); return; }
+    delete $('x1-montar').dataset.conf;
+    for (let k = sel.length - 1; k > 0; k--) { const j = Math.floor(Math.random() * (k + 1)); [sel[k], sel[j]] = [sel[j], sel[k]]; }
+    chave = { jogadores: sel, vence: {}, hist: [] }; guardar('x1_chave', chave);
+    abrirChave();
+  });
+  $('x1-abrir').addEventListener('click', abrirChave);
+  $('chave-fechar').addEventListener('click', () => { $('chave').classList.remove('on'); statusX1(); });
+  $('chave-desfazer').addEventListener('click', () => {
+    if (!chave || !chave.hist.length) return;
+    const k = chave.hist.pop(); limparAdiante(k); delete chave.vence[k]; guardar('x1_chave', chave); desenharChave();
+  });
+
+  function abrirChave() { $('chave').classList.add('on'); desenharChave(); }
+  function totalRodadas() { return Math.log2(chave.jogadores.length); }
+  // jogadores (índices) de um jogo: rodada 0 vem da lista; depois, dos vencedores da rodada anterior
+  function lados(r, m) {
+    if (r === 0) return [2 * m, 2 * m + 1];
+    return [chave.vence[(r - 1) + '-' + 2 * m], chave.vence[(r - 1) + '-' + (2 * m + 1)]];
+  }
+  function limparAdiante(k) {
+    let [r, m] = k.split('-').map(Number);
+    for (r++, m = Math.floor(m / 2); r < totalRodadas(); r++, m = Math.floor(m / 2)) {
+      const kk = r + '-' + m; delete chave.vence[kk]; chave.hist = chave.hist.filter(h => h !== kk);
+    }
+  }
+  function nomeRodada(r, total) { const faltam = total - r; return faltam === 1 ? 'Final' : faltam === 2 ? 'Semifinal' : 'Quartas'; }
+
+  function desenharChave() {
+    const total = totalRodadas();
+    let html = '';
+    for (let r = 0; r < total; r++) {
+      const jogos = chave.jogadores.length / Math.pow(2, r + 1);
+      html += `<div class="rodada"><h3>${nomeRodada(r, total)}</h3><div class="jogos">`;
+      for (let m = 0; m < jogos; m++) {
+        const [a, b] = lados(r, m), v = chave.vence[r + '-' + m];
+        html += '<div class="jogo">' + [a, b].map(idx => {
+          if (idx === undefined) return '<button class="jog" disabled>A definir</button>';
+          const j = chave.jogadores[idx], pronto = a !== undefined && b !== undefined;
+          const cls = v === undefined ? '' : v === idx ? 'venceu' : 'perdeu';
+          return `<button class="jog ${cls}" data-k="${r}-${m}" data-i="${idx}" ${pronto ? '' : 'disabled'}>${esc(j.nick)}<small>${esc(j.nome)}</small></button>`;
+        }).join('') + '</div>';
+      }
+      html += '</div></div>';
+    }
+    const camp = chave.vence[(total - 1) + '-0'];
+    html += `<div class="rodada"><h3>Campeão</h3><div class="jogos"><div class="campeao ${camp !== undefined ? 'tem' : ''}">${camp !== undefined
+      ? `<div><img src="logo.png" alt="" style="width:64px;margin:0 auto 8px;display:block"><div class="nome">${esc(chave.jogadores[camp].nick)}</div><div class="suave">${esc(chave.jogadores[camp].nome)}</div></div>`
+      : '<span class="suave">Aguardando a final</span>'}</div></div></div>`;
+    $('rodadas').innerHTML = html;
+  }
+
+  $('rodadas').addEventListener('click', e => {
+    const b = e.target.closest('.jog[data-k]'); if (!b || b.disabled) return;
+    const k = b.dataset.k, i = Number(b.dataset.i);
+    if (chave.vence[k] === i) return;
+    if (chave.vence[k] !== undefined) limparAdiante(k);
+    chave.vence[k] = i; chave.hist = chave.hist.filter(h => h !== k); chave.hist.push(k);
+    guardar('x1_chave', chave); desenharChave();
+    if (k === (totalRodadas() - 1) + '-0') confete();
+  });
 
   carregar();
   setInterval(carregar, 15000);
