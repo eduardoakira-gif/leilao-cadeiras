@@ -74,7 +74,7 @@
     <img src="logo.png" alt="Fluxo W7M" width="56" height="56">
     <div>
       <h1 class="titulo">Painel do sorteio</h1>
-      <div class="suave" style="font-size:.9rem">Manguito · captação de leads</div>
+      <div class="suave" style="font-size:.9rem">Brinde · captação de leads</div>
     </div>
     <div class="status"><span class="dot" id="dot"></span><span id="atualizado">carregando…</span></div>
   </header>
@@ -110,7 +110,7 @@
 
     <div class="card sorteio">
       <div>
-        <h2>Sortear o manguito</h2>
+        <h2>Sortear o brinde</h2>
         <p class="suave" style="margin:0 0 14px;font-size:.92rem">Sorteia entre todos os cadastrados (quem já ganhou fica de fora). O resultado fica registrado na planilha.</p>
         <div class="ctrl">
           <input id="pin" type="password" inputmode="numeric" placeholder="PIN" aria-label="PIN do sorteio" autocomplete="off">
@@ -220,7 +220,7 @@
       ]);
       clearInterval(roleta);
       if (!r.ok) { palco.innerHTML = '<div class="suave">O ganhador aparece aqui</div>'; return $('msg').textContent = r.erro || 'Erro ao sortear.'; }
-      palco.innerHTML = `<div><div class="suave" style="font-weight:600;margin-bottom:6px">Ganhador do manguito · entre ${r.participantes} participantes</div><div class="nome ganhou">${esc(r.nome)}</div><div class="fone">${esc(r.telefone)}</div></div>`;
+      palco.innerHTML = `<div><div class="suave" style="font-weight:600;margin-bottom:6px">Ganhador do brinde · entre ${r.participantes} participantes</div><div class="nome ganhou">${esc(r.nome)}</div><div class="fone">${esc(r.telefone)}</div></div>`;
       jaSorteou = true;
       carregar();
     } catch (e) {

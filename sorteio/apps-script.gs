@@ -1,5 +1,5 @@
 /**
- * Sorteio do manguito — Fluxo W7M
+ * Sorteio do brinde — Fluxo W7M
  * Backend em Google Apps Script ligado à planilha de leads.
  *
  * Como publicar (uma vez só):
