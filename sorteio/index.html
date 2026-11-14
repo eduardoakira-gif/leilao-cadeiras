@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>Sorteio do manguito | Fluxo W7M</title>
+<link rel="icon" href="logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="estilo.css">
+<style>
+  main { max-width: 440px; margin: 0 auto; padding: 28px 18px 40px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .logo { width: 92px; height: 92px; display: block; margin-bottom: 14px; }
+  .selo { display: inline-block; font-weight: 700; font-size: .78rem; letter-spacing: .14em; text-transform: uppercase; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--linha); background: var(--carvao-2); margin-bottom: 12px; }
+  h1 { font-size: clamp(3rem, 15vw, 4.4rem); }
+  .lead { margin: 10px 0 22px; color: var(--suave); font-size: 1.05rem; max-width: 34ch; }
+  .lead strong { color: var(--texto); }
+  form, .ok { width: 100%; padding: 22px 18px; text-align: left; }
+  label.campo { display: block; font-weight: 600; font-size: .95rem; margin: 0 0 6px; }
+  .input { width: 100%; background: var(--preto); color: var(--texto); border: 1.5px solid var(--linha); border-radius: 12px; padding: 14px 14px; font-size: 1.1rem; margin-bottom: 16px; }
+  .input:focus { border-color: var(--magenta); outline: none; }
+  .aceite { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: start; font-size: .85rem; color: var(--suave); margin: 4px 0 18px; cursor: pointer; }
+  .aceite input { width: 20px; height: 20px; margin: 1px 0 0; accent-color: var(--magenta); }
+  .erro { color: var(--alerta); font-weight: 600; font-size: .92rem; min-height: 1.3em; margin: 10px 0 0; text-align: center; }
+  .ok { text-align: center; display: none; }
+  .ok .icone { width: 72px; height: 72px; margin: 4px auto 12px; border-radius: 50%; background: var(--grad); display: grid; place-items: center; }
+  .ok h2 { font-size: 2.6rem; }
+  .ok p { color: var(--suave); margin: 8px 0 20px; }
+  .rodape { margin-top: 22px; font-size: .78rem; color: var(--suave); max-width: 38ch; }
+  .config { display: none; padding: 18px; color: var(--suave); }
+</style>
+</head>
+<body>
+<main>
+  <img class="logo" src="logo.png" alt="Fluxo W7M" width="92" height="92">
+  <span class="selo">Sorteio do dia</span>
+  <h1 class="titulo">Ganhe um <span class="grad-txt">manguito</span></h1>
+  <p class="lead">Deixe seu nome e telefone e concorra. <strong>O sorteio acontece no final do dia.</strong></p>
+
+  <form id="form" class="card" novalidate>
+    <label class="campo" for="nome">Nome completo</label>
+    <input class="input" id="nome" name="nome" autocomplete="name" autocapitalize="words" maxlength="80" required placeholder="Seu nome">
+
+    <label class="campo" for="telefone">Telefone (WhatsApp)</label>
+    <input class="input" id="telefone" name="telefone" type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="15" required placeholder="(11) 91234-5678">
+
+    <label class="aceite">
+      <input type="checkbox" id="aceite" required>
+      <span>Autorizo o Fluxo W7M a usar meus dados para este sorteio e para enviar novidades e promoções. Posso pedir a remoção a qualquer momento.</span>
+    </label>
+
+    <button class="btn" id="enviar" type="submit">Quero participar</button>
+    <p class="erro" id="erro" role="alert"></p>
+  </form>
+
+  <div class="ok card" id="ok" aria-live="polite">
+    <div class="icone"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+    <h2 class="titulo" id="ok-titulo">Você está no sorteio!</h2>
+    <p id="ok-texto">Fique de olho no telefone: o ganhador será chamado no final do dia.</p>
+    <button class="btn-sec" id="outro" type="button">Cadastrar outra pessoa</button>
+  </div>
+
+  <div class="config card" id="config">Sorteio em configuração. Volte em alguns minutos.</div>
+
+  <p class="rodape">Um cadastro por telefone. Ganhador sorteado aleatoriamente entre todos os participantes e contatado pelo número informado.</p>
+</main>
+
+<script src="config.js"></script>
+<script>
+  const API = window.SORTEIO_API;
+  const $ = id => document.getElementById(id);
+  const origem = new URLSearchParams(location.search).get('origem') || 'link';
+
+  if (!API) { $('form').style.display = 'none'; $('config').style.display = 'block'; }
+
+  // Máscara de telefone
+  $('telefone').addEventListener('input', e => {
+    const d = e.target.value.replace(/\D/g, '').slice(0, 11);
+    let v = d;
+    if (d.length > 2) v = '(' + d.slice(0, 2) + ') ' + d.slice(2);
+    if (d.length > 6) v = '(' + d.slice(0, 2) + ') ' + (d.length === 11 ? d.slice(2, 7) + '-' + d.slice(7) : d.slice(2, 6) + '-' + d.slice(6));
+    e.target.value = v;
+  });
+
+  $('form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const nome = $('nome').value.trim().replace(/\s+/g, ' ');
+    const fone = $('telefone').value.replace(/\D/g, '');
+    $('erro').textContent = '';
+    if (nome.split(' ').length < 2 || nome.length < 5) return falha('Informe nome e sobrenome.', 'nome');
+    if (fone.length < 10) return falha('Telefone incompleto. Use DDD + número.', 'telefone');
+    if (!$('aceite').checked) return falha('Marque a autorização para participar.');
+
+    $('enviar').disabled = true; $('enviar').textContent = 'Enviando...';
+    try {
+      const r = await fetch(API, { method: 'POST', body: JSON.stringify({ acao: 'cadastro', nome, telefone: fone, aceite: true, origem }) });
+      const j = await r.json();
+      if (!j.ok) return falha(j.erro || 'Não foi possível cadastrar.');
+      $('ok-titulo').textContent = j.duplicado ? 'Você já está no sorteio!' : 'Você está no sorteio!';
+      $('ok-texto').textContent = j.duplicado
+        ? 'Esse telefone já foi cadastrado. Boa sorte no sorteio do final do dia!'
+        : 'Fique de olho no telefone: o ganhador será chamado no final do dia.';
+      $('form').style.display = 'none'; $('ok').style.display = 'block';
+    } catch (err) {
+      falha('Sem conexão. Tente de novo.');
+    } finally {
+      $('enviar').disabled = false; $('enviar').textContent = 'Quero participar';
+    }
+  });
+
+  $('outro').addEventListener('click', () => {
+    $('form').reset(); $('ok').style.display = 'none'; $('form').style.display = 'block'; $('nome').focus();
+  });
+
+  function falha(msg, campo) { $('erro').textContent = msg; if (campo) $(campo).focus(); }
+</script>
+</body>
+</html>

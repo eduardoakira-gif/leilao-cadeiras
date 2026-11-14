@@ -1,0 +1,29 @@
+:root {
+  --preto: #000; --carvao: #151217; --carvao-2: #1F1B22; --linha: #332D38;
+  --texto: #F6F3F8; --suave: #ABA3B3;
+  --roxo: #B005FF; --magenta: #E03FC8; --vermelho: #FF0649;
+  --grad: linear-gradient(120deg, #B005FF 0%, #E03FC8 48%, #FF0649 100%);
+  --ok: #5BE3A4; --alerta: #FF5C7A;
+  --titulo: "Bebas Neue", Impact, "Arial Narrow", sans-serif;
+  --texto-ff: "Barlow", "Segoe UI", system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--preto); color: var(--texto); font-family: var(--texto-ff); line-height: 1.45; }
+body {
+  min-height: 100vh; min-height: 100dvh;
+  background:
+    radial-gradient(120% 60% at 50% -10%, rgba(176,5,255,.28), transparent 60%),
+    repeating-linear-gradient(135deg, rgba(255,255,255,.025) 0 2px, transparent 2px 16px),
+    var(--preto);
+}
+button, input { font: inherit; }
+:focus-visible { outline: 3px solid var(--magenta); outline-offset: 2px; }
+.titulo { font-family: var(--titulo); font-weight: 400; letter-spacing: .03em; line-height: .92; margin: 0; }
+.grad-txt { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.btn { width: 100%; background: var(--grad); color: #fff; border: 0; border-radius: 12px; padding: 16px 20px; font-weight: 700; font-size: 1.1rem; letter-spacing: .02em; cursor: pointer; }
+.btn:hover { filter: brightness(1.1); }
+.btn:disabled { opacity: .55; cursor: wait; filter: none; }
+.btn-sec { background: transparent; color: var(--texto); border: 1.5px solid var(--linha); border-radius: 12px; padding: 12px 18px; font-weight: 600; cursor: pointer; }
+.btn-sec:hover { border-color: var(--magenta); }
+.card { background: rgba(21,18,23,.92); border: 1px solid var(--linha); border-radius: 18px; }
+.suave { color: var(--suave); }
