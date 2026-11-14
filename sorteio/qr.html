@@ -26,6 +26,9 @@
   .timer span { white-space: nowrap; color: var(--suave); font-weight: 600; font-size: 2.6vmin; text-transform: uppercase; letter-spacing: .14em; }
   .timer b { font-family: var(--titulo); font-weight: 400; font-size: 7vmin; line-height: 1; letter-spacing: .04em; font-variant-numeric: tabular-nums; }
   .fechado { display: none; }
+  .social { display: none; align-items: center; gap: 1.2vmin; font-size: 3vmin; font-weight: 600; color: var(--texto); padding: 1.2vmin 2.4vmin; border: 1px solid var(--linha); border-radius: 999px; background: var(--carvao-2); }
+  .social::before { content: ""; width: 1.6vmin; height: 1.6vmin; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 .8vmin rgba(91,227,164,.18); }
+  .social b { font-family: var(--titulo); font-weight: 400; font-size: 4.2vmin; line-height: 1; }
   .fechado h1 { font-size: 11vmin; }
   .fechado p { color: var(--suave); font-size: 3.4vmin; margin: 0; }
   /* Tablet deitado: QR ao lado do texto */
@@ -49,6 +52,7 @@
       <h1 class="titulo">Escaneie e concorra a um <span class="grad-txt">brinde</span></h1>
       <p class="sub">Aponte a câmera do celular · leva 20 segundos</p>
       <div class="timer"><span>Sorteio às 19h · faltam</span><b class="grad-txt" id="t">--:--:--</b></div>
+      <div class="social" id="social"><b id="qtd">0</b> pessoas já estão concorrendo</div>
     </div>
     <div class="anel"><div class="qr"><img src="qr-tablet.png" alt="QR code para se cadastrar no sorteio"></div></div>
   </div>
@@ -70,6 +74,15 @@
     if (s === 0) { document.getElementById('aberto').style.display = 'none'; document.getElementById('fechado').style.display = 'flex'; }
   }
   setInterval(tick, 1000); tick();
+  // Contador ao vivo (aparece a partir de 5 participantes)
+  async function contar() {
+    if (!window.SORTEIO_API) return;
+    try {
+      const d = await (await fetch(window.SORTEIO_API + '?acao=stats&t=' + Date.now())).json();
+      if (d.ok && d.total >= 5) { document.getElementById('qtd').textContent = d.total; document.getElementById('social').style.display = 'inline-flex'; }
+    } catch (e) {}
+  }
+  contar(); setInterval(contar, 30000);
   // Mantém a tela do tablet acesa quando o navegador permite
   async function acordado() { try { await navigator.wakeLock.request('screen'); } catch (e) {} }
   acordado(); document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') acordado(); });
