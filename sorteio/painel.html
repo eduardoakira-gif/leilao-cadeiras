@@ -118,7 +118,7 @@
   .troca-lista button { text-align: left; background: var(--carvao-2); border: 1px solid var(--linha); border-radius: 10px; color: var(--texto); padding: 10px 12px; font-weight: 600; cursor: pointer; }
   .troca-lista button:hover { border-color: var(--magenta); }
   .troca-lista small { display: block; color: var(--suave); font-weight: 500; font-size: .78rem; }
-  .troca-manual { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; }
+  .troca-manual { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
   .troca-manual input { background: var(--preto); color: var(--texto); border: 1.5px solid var(--linha); border-radius: 10px; padding: 11px; font-size: 1rem; min-width: 0; }
   @media (max-width: 560px) { .troca-manual { grid-template-columns: 1fr; } }
   .campeao { display: grid; place-items: center; text-align: center; border: 2px dashed var(--linha); border-radius: 16px; padding: 18px; min-height: 160px; }
@@ -225,19 +225,17 @@
 <div class="chave" id="chave" role="dialog" aria-label="Chaveamento do X1">
   <div class="chave-topo">
     <h2 class="titulo">Chave do <span class="grad-txt">X1</span> · MD3: toque em quem venceu cada partida (2 vitórias avança)</h2>
-    <div class="acoes"><button class="btn-sec" id="chave-trocar">Trocar jogador</button><button class="btn-sec" id="chave-desfazer">Desfazer última partida</button><button class="btn-sec" id="chave-fechar">Voltar ao painel</button></div>
+    <div class="acoes"><button class="btn-sec" id="chave-trocar" style="display:none">Trocar nick</button><button class="btn-sec" id="chave-desfazer">Desfazer última partida</button><button class="btn-sec" id="chave-fechar">Voltar ao painel</button></div>
   </div>
-  <div class="troca-aviso" id="troca-aviso">Modo troca ligado: toque no jogador que não apareceu (só nas primeiras partidas da chave).</div>
+  <div class="troca-aviso" id="troca-aviso">Modo troca ligado: toque no nick de quem não apareceu e digite o novo.</div>
   <div class="rodadas" id="rodadas"></div>
   <div class="troca" id="troca" role="dialog" aria-label="Trocar jogador">
     <div class="troca-box">
-      <h3 class="titulo" id="troca-tit">Trocar jogador</h3>
-      <p class="suave" style="margin:0 0 12px;font-size:.9rem">Escolha quem entra no lugar. O placar desse confronto volta para 0 x 0.</p>
-      <div class="troca-lista" id="troca-lista"></div>
+      <h3 class="titulo" id="troca-tit">Trocar nick</h3>
+      <p class="suave" style="margin:0 0 12px;font-size:.9rem">Digite o nick de quem entra no lugar. O placar desse confronto volta para 0 x 0.</p>
       <div class="troca-manual">
-        <input id="troca-nick" placeholder="Nick do substituto" maxlength="24" autocomplete="off">
-        <input id="troca-nome" placeholder="Nome (opcional)" maxlength="40" autocomplete="off">
-        <button class="btn" id="troca-ok" style="width:auto;padding:12px 18px">Colocar na chave</button>
+        <input id="troca-nick" placeholder="Novo nick" maxlength="24" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <button class="btn" id="troca-ok" style="width:auto;padding:12px 18px">Salvar</button>
       </div>
       <button class="btn-sec" id="troca-cancelar" style="margin-top:12px;width:100%">Cancelar</button>
     </div>
@@ -531,19 +529,16 @@
 
   /* ----- Trocar jogador que não apareceu ----- */
   let trocando = false, trocaIdx = null;
-  function setTrocando(v) { trocando = v; $('chave').classList.toggle('trocando', v); $('chave-trocar').classList.toggle('on', v); $('chave-trocar').textContent = v ? 'Sair do modo troca' : 'Trocar jogador'; }
+  function setTrocando(v) { trocando = v; $('chave').classList.toggle('trocando', v); $('chave-trocar').classList.toggle('on', v); $('chave-trocar').textContent = v ? 'Sair do modo troca' : 'Trocar nick'; }
   $('chave-trocar').addEventListener('click', () => setTrocando(!trocando));
+  // Só aparece no link do Edu (painel.html?admin)
+  if (new URLSearchParams(location.search).has('admin')) $('chave-trocar').style.display = '';
   function abrirTroca(idx) {
     trocaIdx = idx;
-    const atual = chave.jogadores[idx];
-    $('troca-tit').textContent = 'Trocar ' + atual.nick;
-    const naChave = new Set(chave.jogadores.map(j => j.nick + '|' + j.nome));
-    const fora = x1Inscritos.filter(i => !naChave.has(i.nick + '|' + i.nome));
-    $('troca-lista').innerHTML = fora.length
-      ? fora.map(i => `<button data-nick="${esc(i.nick)}" data-nome="${esc(i.nome)}">${esc(i.nick)}<small>${esc(i.nome)} · ${i.posicao > 8 ? 'lista de espera ' + (i.posicao - 8) : 'inscrito ' + i.posicao}</small></button>`).join('')
-      : '<p class="suave" style="margin:0;font-size:.9rem">Nenhum outro inscrito disponível. Digite o substituto abaixo.</p>';
-    $('troca-nick').value = ''; $('troca-nome').value = '';
+    $('troca-tit').textContent = 'Trocar ' + chave.jogadores[idx].nick;
+    $('troca-nick').value = '';
     $('troca').classList.add('on');
+    setTimeout(() => $('troca-nick').focus(), 50);
   }
   function aplicarTroca(nick, nome) {
     if (trocaIdx === null || !nick) return;
@@ -553,8 +548,9 @@
     guardar('x1_chave_' + window.SORTEIO_DIA, chave);
     $('troca').classList.remove('on'); trocaIdx = null; setTrocando(false); desenharChave();
   }
-  $('troca-lista').addEventListener('click', e => { const b = e.target.closest('button[data-nick]'); if (b) aplicarTroca(b.dataset.nick, b.dataset.nome); });
-  $('troca-ok').addEventListener('click', () => { const n = $('troca-nick').value.trim(); if (!n) { $('troca-nick').focus(); return; } aplicarTroca(n, $('troca-nome').value.trim()); });
+  function salvarTroca() { const n = $('troca-nick').value.trim(); if (!n) { $('troca-nick').focus(); return; } aplicarTroca(n, ''); }
+  $('troca-ok').addEventListener('click', salvarTroca);
+  $('troca-nick').addEventListener('keydown', e => { if (e.key === 'Enter') salvarTroca(); });
   $('troca-cancelar').addEventListener('click', () => { $('troca').classList.remove('on'); trocaIdx = null; });
 
   $('rodadas').addEventListener('click', e => {
