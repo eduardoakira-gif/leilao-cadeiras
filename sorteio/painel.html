@@ -97,6 +97,9 @@
   .jogo { border: 1px solid var(--linha); border-radius: 12px; overflow: hidden; background: var(--carvao); }
   .jog { display: block; width: 100%; text-align: left; background: none; border: 0; color: var(--texto); padding: 12px 14px; font-size: 1.05rem; font-weight: 600; cursor: pointer; min-height: 48px; }
   .jog + .jog { border-top: 1px solid var(--linha); }
+  .jog { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .jog .pts { display: inline-block; text-decoration: none; font-family: var(--titulo); font-weight: 400; font-size: 1.9rem; line-height: 1; min-width: 1.2em; text-align: right; font-variant-numeric: tabular-nums; color: var(--suave); }
+  .jog.venceu .pts { color: #fff; }
   .jog small { display: block; color: var(--suave); font-weight: 500; font-size: .78rem; }
   .jog:hover:not(:disabled) { background: var(--carvao-2); }
   .jog:disabled { cursor: default; color: var(--suave); }
@@ -206,8 +209,8 @@
 </div>
 <div class="chave" id="chave" role="dialog" aria-label="Chaveamento do X1">
   <div class="chave-topo">
-    <h2 class="titulo">Chave do <span class="grad-txt">X1</span> · toque no vencedor de cada jogo</h2>
-    <div class="acoes"><button class="btn-sec" id="chave-desfazer">Desfazer último</button><button class="btn-sec" id="chave-fechar">Voltar ao painel</button></div>
+    <h2 class="titulo">Chave do <span class="grad-txt">X1</span> · MD3: toque em quem venceu cada partida (2 vitórias avança)</h2>
+    <div class="acoes"><button class="btn-sec" id="chave-desfazer">Desfazer última partida</button><button class="btn-sec" id="chave-fechar">Voltar ao painel</button></div>
   </div>
   <div class="rodadas" id="rodadas"></div>
 </div>
@@ -379,7 +382,7 @@
   const ler = (k, padrao) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : padrao; } catch (e) { return padrao; } };
   let x1Inscritos = [];
   let marcacao = ler('x1_marcacao_' + window.SORTEIO_DIA, {});   // posicao -> true/false (só o que a promoter mexeu)
-  let chave = ler('x1_chave_' + window.SORTEIO_DIA, null);       // { jogadores: [...], vence: { 'r-m': indiceDoJogador }, hist: [...] }
+  let chave = ler('x1_chave_' + window.SORTEIO_DIA, null);       // { jogadores, vence: { 'r-m': índice }, pts: { 'r-m': { índice: vitórias } }, log: [...] } (MD3)
 
   function marcado(i) { return marcacao[i.posicao] !== undefined ? marcacao[i.posicao] : i.posicao <= 8; }
 
@@ -425,15 +428,27 @@
     if (sel.length !== 4 && sel.length !== 8) return;
     if (chave && !$('x1-montar').dataset.conf) { $('x1-montar').dataset.conf = '1'; $('x1-montar').textContent = 'Já existe uma chave · confirmar nova'; setTimeout(() => { delete $('x1-montar').dataset.conf; statusX1(); }, 6000); return; }
     delete $('x1-montar').dataset.conf;
-    chave = { jogadores: sel, vence: {}, hist: [] }; guardar('x1_chave_' + window.SORTEIO_DIA, chave);
+    chave = { jogadores: sel, vence: {}, pts: {}, log: [] }; guardar('x1_chave_' + window.SORTEIO_DIA, chave);
     abrirChave();
   });
   $('x1-abrir').addEventListener('click', abrirChave);
   $('chave-fechar').addEventListener('click', () => { $('chave').classList.remove('on'); statusX1(); });
+  // Desfaz a última partida marcada (tira 1 ponto); se isso mudar quem avançou, limpa as fases seguintes
   $('chave-desfazer').addEventListener('click', () => {
-    if (!chave || !chave.hist.length) return;
-    const k = chave.hist.pop(); limparAdiante(k); delete chave.vence[k]; guardar('x1_chave_' + window.SORTEIO_DIA, chave); desenharChave();
+    if (!chave) return; prepararChave();
+    const ev = chave.log.pop(); if (!ev) return;
+    const p = chave.pts[ev.k] || {}; p[ev.i] = Math.max(0, (p[ev.i] || 0) - 1);
+    const antes = chave.vence[ev.k]; recalcular(ev.k);
+    if (antes !== undefined && chave.vence[ev.k] !== antes) limparAdiante(ev.k);
+    guardar('x1_chave_' + window.SORTEIO_DIA, chave); desenharChave();
   });
+  const VITORIAS = 2; // MD3
+  function prepararChave() { chave.pts = chave.pts || {}; chave.log = chave.log || []; }
+  function recalcular(k) {
+    const p = chave.pts[k] || {};
+    const v = Object.keys(p).find(i => p[i] >= VITORIAS);
+    if (v !== undefined) chave.vence[k] = Number(v); else delete chave.vence[k];
+  }
 
   // Mesma ordem da chave pública (1x2, 3x4...). Quem faltar dá lugar ao próximo presente da lista de espera, na mesma posição.
   function jogadoresChave() {
@@ -454,12 +469,13 @@
   function limparAdiante(k) {
     let [r, m] = k.split('-').map(Number);
     for (r++, m = Math.floor(m / 2); r < totalRodadas(); r++, m = Math.floor(m / 2)) {
-      const kk = r + '-' + m; delete chave.vence[kk]; chave.hist = chave.hist.filter(h => h !== kk);
+      const kk = r + '-' + m; delete chave.vence[kk]; delete chave.pts[kk]; chave.log = chave.log.filter(e => e.k !== kk);
     }
   }
   function nomeRodada(r, total) { const faltam = total - r; return faltam === 1 ? 'Final' : faltam === 2 ? 'Semifinal' : 'Quartas'; }
 
   function desenharChave() {
+    prepararChave();
     const total = totalRodadas();
     let html = '';
     for (let r = 0; r < total; r++) {
@@ -471,7 +487,8 @@
           if (idx === undefined) return '<button class="jog" disabled>A definir</button>';
           const j = chave.jogadores[idx], pronto = a !== undefined && b !== undefined;
           const cls = v === undefined ? '' : v === idx ? 'venceu' : 'perdeu';
-          return `<button class="jog ${cls}" data-k="${r}-${m}" data-i="${idx}" ${pronto ? '' : 'disabled'}>${esc(j.nick)}<small>${esc(j.nome)}</small></button>`;
+          const pt = (chave.pts[r + '-' + m] || {})[idx] || 0;
+          return `<button class="jog ${cls}" data-k="${r}-${m}" data-i="${idx}" ${pronto ? '' : 'disabled'}><span>${esc(j.nick)}<small>${esc(j.nome)}</small></span><b class="pts">${pronto ? pt : ''}</b></button>`;
         }).join('') + '</div>';
       }
       html += '</div></div>';
@@ -486,11 +503,13 @@
   $('rodadas').addEventListener('click', e => {
     const b = e.target.closest('.jog[data-k]'); if (!b || b.disabled) return;
     const k = b.dataset.k, i = Number(b.dataset.i);
-    if (chave.vence[k] === i) return;
-    if (chave.vence[k] !== undefined) limparAdiante(k);
-    chave.vence[k] = i; chave.hist = chave.hist.filter(h => h !== k); chave.hist.push(k);
+    prepararChave();
+    if (chave.vence[k] !== undefined) return; // confronto já decidido: para corrigir, use "Desfazer último"
+    const p = chave.pts[k] = chave.pts[k] || {};
+    p[i] = (p[i] || 0) + 1; chave.log.push({ k, i });
+    recalcular(k);
     guardar('x1_chave_' + window.SORTEIO_DIA, chave); desenharChave();
-    if (k === (totalRodadas() - 1) + '-0') confete();
+    if (chave.vence[k] !== undefined && k === (totalRodadas() - 1) + '-0') confete();
   });
 
   carregar();
