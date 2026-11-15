@@ -224,7 +224,7 @@
 </div>
 <div class="chave" id="chave" role="dialog" aria-label="Chaveamento do X1">
   <div class="chave-topo">
-    <h2 class="titulo">Chave do <span class="grad-txt">X1</span> · MD3: toque em quem venceu cada partida (2 vitórias avança)</h2>
+    <h2 class="titulo">Chave do <span class="grad-txt">X1</span> · MD1 nas fases, final MD3 · toque em quem venceu cada partida</h2>
     <div class="acoes"><button class="btn-sec" id="chave-trocar" style="display:none">Trocar nick</button><button class="btn-sec" id="chave-desfazer">Desfazer última partida</button><button class="btn-sec" id="chave-fechar">Voltar ao painel</button></div>
   </div>
   <div class="troca-aviso" id="troca-aviso">Modo troca ligado: toque no nick de quem não apareceu e digite o novo.</div>
@@ -469,11 +469,12 @@
     if (antes !== undefined && chave.vence[ev.k] !== antes) limparAdiante(ev.k);
     guardar('x1_chave_' + window.SORTEIO_DIA, chave); desenharChave();
   });
-  const VITORIAS = 2; // MD3
+  // MD1 nas fases e MD3 na final
+  function vitoriasPara(k) { return Number(k.split('-')[0]) === totalRodadas() - 1 ? 2 : 1; }
   function prepararChave() { chave.pts = chave.pts || {}; chave.log = chave.log || []; }
   function recalcular(k) {
     const p = chave.pts[k] || {};
-    const v = Object.keys(p).find(i => p[i] >= VITORIAS);
+    const v = Object.keys(p).find(i => p[i] >= vitoriasPara(k));
     if (v !== undefined) chave.vence[k] = Number(v); else delete chave.vence[k];
   }
 
@@ -499,7 +500,7 @@
       const kk = r + '-' + m; delete chave.vence[kk]; delete chave.pts[kk]; chave.log = chave.log.filter(e => e.k !== kk);
     }
   }
-  function nomeRodada(r, total) { const faltam = total - r; return faltam === 1 ? 'Final' : faltam === 2 ? 'Semifinal' : 'Quartas'; }
+  function nomeRodada(r, total) { const faltam = total - r; return faltam === 1 ? 'Final · MD3' : (faltam === 2 ? 'Semifinal' : 'Quartas') + ' · MD1'; }
 
   function desenharChave() {
     prepararChave();
