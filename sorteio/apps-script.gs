@@ -9,8 +9,9 @@
 
 const PIN = '2026';                                  // libera o botão "Sortear" no painel
 const FUSO = 'America/Sao_Paulo';
-const SORTEIO_FECHA = '2026-11-14T19:00:00-03:00';   // cadastros do sorteio fecham aqui
-const X1_FECHA = '2026-11-14T18:00:00-03:00';        // inscrições do X1 fecham aqui
+const SORTEIO_HORA = 19;    // todo dia: cadastros do sorteio fecham às 19h
+const X1_HORA = 18;         // todo dia: inscrições do X1 fecham às 18h
+// Cada dia começa do zero: o sorteio e o X1 usam só os cadastros de hoje (o histórico fica na planilha).
 const X1_VAGAS = 8;                                  // confirmados; o resto vai para lista de espera
 const ABA_LEADS = 'Leads';
 const ABA_SORTEIOS = 'Sorteios';
@@ -33,7 +34,7 @@ function doPost(e) {
 
 /* ---------- Cadastro do sorteio ---------- */
 function cadastrar_(d) {
-  if (Date.now() >= new Date(SORTEIO_FECHA).getTime()) return { ok: false, erro: 'Inscrições encerradas.' };
+  if (horaAgora_() >= SORTEIO_HORA) return { ok: false, erro: 'Inscrições encerradas.' };
   const nome = limparNome_(d.nome);
   const digitos = String(d.telefone || '').replace(/\D/g, '');
   if (nome.length < 3) return { ok: false, erro: 'Informe o nome completo.' };
@@ -44,7 +45,7 @@ function cadastrar_(d) {
   lock.waitLock(30000);
   try {
     const aba = aba_(ABA_LEADS, ['Data/Hora', 'Nome', 'Telefone', 'Aceite LGPD', 'Origem']);
-    if (posicaoFone_(aba, 3, digitos)) return { ok: true, duplicado: true };
+    if (posicaoFoneHoje_(aba, 3, digitos)) return { ok: true, duplicado: true };
     aba.appendRow([new Date(), nome, formatar_(digitos), 'Sim', String(d.origem || '').slice(0, 40)]);
     return { ok: true, duplicado: false };
   } finally {
@@ -54,7 +55,7 @@ function cadastrar_(d) {
 
 /* ---------- Inscrição do X1 ---------- */
 function inscreverX1_(d) {
-  if (Date.now() >= new Date(X1_FECHA).getTime()) return { ok: false, erro: 'Inscrições do X1 encerradas.' };
+  if (horaAgora_() >= X1_HORA) return { ok: false, erro: 'Inscrições do X1 encerradas.' };
   const nome = limparNome_(d.nome);
   const nick = String(d.nick || '').trim().replace(/\s+/g, ' ').slice(0, 24);
   const digitos = String(d.telefone || '').replace(/\D/g, '');
@@ -67,10 +68,10 @@ function inscreverX1_(d) {
   lock.waitLock(30000);
   try {
     const aba = aba_(ABA_X1, ['Data/Hora', 'Nome', 'Nick', 'Telefone', 'Aceite LGPD', 'Origem']);
-    const ja = posicaoFone_(aba, 4, digitos);
+    const ja = posicaoFoneHoje_(aba, 4, digitos);
     if (ja) return { ok: true, duplicado: true, posicao: ja, confirmado: ja <= X1_VAGAS, vagas: X1_VAGAS };
     aba.appendRow([new Date(), nome, nick, formatar_(digitos), 'Sim', String(d.origem || '').slice(0, 40)]);
-    const pos = aba.getLastRow() - 1;
+    const pos = linhasHoje_(ABA_X1).length;
     return { ok: true, duplicado: false, posicao: pos, confirmado: pos <= X1_VAGAS, vagas: X1_VAGAS };
   } finally {
     lock.releaseLock();
@@ -81,7 +82,7 @@ function inscreverX1_(d) {
 function stats_() {
   const leads = linhas_(ABA_LEADS);
   const sorteios = linhas_(ABA_SORTEIOS);
-  const x1 = linhas_(ABA_X1);
+  const x1 = linhasHoje_(ABA_X1);
   const hoje = Utilities.formatDate(new Date(), FUSO, 'yyyy-MM-dd');
   const porHora = {}, porOrigem = {};
   let totalHoje = 0;
@@ -99,7 +100,7 @@ function stats_() {
     nome: primeiroNome_(r[1]), telefone: mascarar_(r[2]),
     hora: r[0] instanceof Date ? Utilities.formatDate(r[0], FUSO, 'dd/MM HH:mm') : ''
   }));
-  const nomes = leads.slice(-60).map(r => primeiroNome_(r[1]));
+  const nomes = leads.filter(eHoje_).slice(-60).map(r => primeiroNome_(r[1]));
   const x1Lista = x1.map((r, i) => ({ posicao: i + 1, nome: primeiroNome_(r[1]), nick: String(r[2]), telefone: mascarar_(r[3]), hora: hora(r) }));
   return {
     ok: true, total: leads.length, totalHoje, porHora, porOrigem, ultimos, ganhadores, nomes,
@@ -114,8 +115,8 @@ function sortear_(d) {
   const lock = LockService.getScriptLock();
   lock.waitLock(30000);
   try {
-    const leads = linhas_(ABA_LEADS);
-    const jaGanharam = new Set(linhas_(ABA_SORTEIOS).map(r => String(r[2]).replace(/\D/g, '')));
+    const leads = linhasHoje_(ABA_LEADS);
+    const jaGanharam = new Set(linhasHoje_(ABA_SORTEIOS).map(r => String(r[2]).replace(/\D/g, '')));
     const aptos = leads.filter(r => !jaGanharam.has(String(r[2]).replace(/\D/g, '')));
     if (!aptos.length) return { ok: false, erro: 'Nenhum participante apto para sortear.' };
     const g = aptos[Math.floor(Math.random() * aptos.length)];
@@ -143,12 +144,14 @@ function linhas_(nome) {
   if (!aba || aba.getLastRow() < 2) return [];
   return aba.getRange(2, 1, aba.getLastRow() - 1, aba.getLastColumn()).getValues();
 }
-// posição (1, 2, 3...) do telefone na aba, ou 0 se não existir
-function posicaoFone_(aba, coluna, digitos) {
-  const ultima = aba.getLastRow();
-  if (ultima < 2) return 0;
-  const fones = aba.getRange(2, coluna, ultima - 1, 1).getDisplayValues();
-  const i = fones.findIndex(r => String(r[0]).replace(/\D/g, '') === digitos);
+function hojeStr_() { return Utilities.formatDate(new Date(), FUSO, 'yyyy-MM-dd'); }
+function horaAgora_() { return Number(Utilities.formatDate(new Date(), FUSO, 'H')); }
+function eHoje_(r) { return r[0] instanceof Date && Utilities.formatDate(r[0], FUSO, 'yyyy-MM-dd') === hojeStr_(); }
+function linhasHoje_(nome) { return linhas_(nome).filter(eHoje_); }
+// posição (1, 2, 3...) do telefone entre os cadastros de hoje, ou 0 se não existir
+function posicaoFoneHoje_(aba, coluna, digitos) {
+  const hoje = linhas_(aba.getName()).filter(eHoje_);
+  const i = hoje.findIndex(r => String(r[coluna - 1]).replace(/\D/g, '') === digitos);
   return i + 1;
 }
 function limparNome_(n) { return String(n || '').trim().replace(/\s+/g, ' ').slice(0, 80); }

@@ -213,7 +213,7 @@
 </div>
 <canvas id="confete"></canvas>
 
-<script src="config.js?v=4"></script>
+<script src="config.js?v=5"></script>
 <script>
   const API = window.SORTEIO_API;
   const $ = id => document.getElementById(id);
@@ -378,8 +378,8 @@
   const guardar = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
   const ler = (k, padrao) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : padrao; } catch (e) { return padrao; } };
   let x1Inscritos = [];
-  let marcacao = ler('x1_marcacao', {});   // posicao -> true/false (só o que a promoter mexeu)
-  let chave = ler('x1_chave', null);       // { jogadores: [...], vence: { 'r-m': indiceDoJogador }, hist: [...] }
+  let marcacao = ler('x1_marcacao_' + window.SORTEIO_DIA, {});   // posicao -> true/false (só o que a promoter mexeu)
+  let chave = ler('x1_chave_' + window.SORTEIO_DIA, null);       // { jogadores: [...], vence: { 'r-m': indiceDoJogador }, hist: [...] }
 
   function marcado(i) { return marcacao[i.posicao] !== undefined ? marcacao[i.posicao] : i.posicao <= 8; }
 
@@ -415,7 +415,7 @@
   $('x1-lista').addEventListener('click', e => {
     const li = e.target.closest('li[data-p]'); if (!li) return;
     const i = x1Inscritos.find(x => x.posicao === Number(li.dataset.p));
-    marcacao[i.posicao] = !marcado(i); guardar('x1_marcacao', marcacao);
+    marcacao[i.posicao] = !marcado(i); guardar('x1_marcacao_' + window.SORTEIO_DIA, marcacao);
     li.classList.toggle('marcado', marcado(i)); li.querySelector('input').checked = marcado(i);
     statusX1();
   });
@@ -425,14 +425,14 @@
     if (sel.length !== 4 && sel.length !== 8) return;
     if (chave && !$('x1-montar').dataset.conf) { $('x1-montar').dataset.conf = '1'; $('x1-montar').textContent = 'Já existe uma chave · confirmar nova'; setTimeout(() => { delete $('x1-montar').dataset.conf; statusX1(); }, 6000); return; }
     delete $('x1-montar').dataset.conf;
-    chave = { jogadores: sel, vence: {}, hist: [] }; guardar('x1_chave', chave);
+    chave = { jogadores: sel, vence: {}, hist: [] }; guardar('x1_chave_' + window.SORTEIO_DIA, chave);
     abrirChave();
   });
   $('x1-abrir').addEventListener('click', abrirChave);
   $('chave-fechar').addEventListener('click', () => { $('chave').classList.remove('on'); statusX1(); });
   $('chave-desfazer').addEventListener('click', () => {
     if (!chave || !chave.hist.length) return;
-    const k = chave.hist.pop(); limparAdiante(k); delete chave.vence[k]; guardar('x1_chave', chave); desenharChave();
+    const k = chave.hist.pop(); limparAdiante(k); delete chave.vence[k]; guardar('x1_chave_' + window.SORTEIO_DIA, chave); desenharChave();
   });
 
   // Mesma ordem da chave pública (1x2, 3x4...). Quem faltar dá lugar ao próximo presente da lista de espera, na mesma posição.
@@ -489,7 +489,7 @@
     if (chave.vence[k] === i) return;
     if (chave.vence[k] !== undefined) limparAdiante(k);
     chave.vence[k] = i; chave.hist = chave.hist.filter(h => h !== k); chave.hist.push(k);
-    guardar('x1_chave', chave); desenharChave();
+    guardar('x1_chave_' + window.SORTEIO_DIA, chave); desenharChave();
     if (k === (totalRodadas() - 1) + '-0') confete();
   });
 
